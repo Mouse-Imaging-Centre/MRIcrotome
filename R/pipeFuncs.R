@@ -1,4 +1,21 @@
-sliceSeries <- function(slices=NULL, nrow=4, ncol=5, dimension=2, begin=NULL, end=NULL) {
+initMetaSliceSeries <- function() {
+  ssm <- new.env(parent = globalenv())
+  ssm$seriesCounter=1
+  ssm$ssl=list()
+  return(ssm)
+}
+
+sliceSeries <- function(ssm=NULL,
+                        slices=NULL, nrow=4, ncol=5, dimension=2, begin=NULL, end=NULL) {
+
+  # ssm (the first arg) is provided if this is part of an ongoing pipe, but should be
+  # null if this is the first initialization
+  if (is.null(ssm)) {
+    ssm <- initMetaSliceSeries()
+  }
+  else {
+    ssm$seriesCounter = ssm$seriesCounter+1
+  }
   # add checking for slices vs nrow and ncol
   gl <- grid.layout(nrow=nrow, ncol=ncol)
   seriesVP <- viewport(layout = gl)
@@ -11,9 +28,19 @@ sliceSeries <- function(slices=NULL, nrow=4, ncol=5, dimension=2, begin=NULL, en
             seriesVP=seriesVP,
             order=list(),
             legendInfo=list(),
-            legendOrder=list())
+            legendOrder=list(),
+            title=list())
   class(l) <- c("sliceSeries", "list")
-  return(l)
+  ssm$ssl[[ssm$seriesCounter]] <- l
+
+  return(ssm)
+}
+
+getSS <- function(ssm) {
+  return(ssm$ssl[[ssm$seriesCounter]])
+}
+putSS <- function(ssm, ss) {
+  ssm$ssl[[ssm$seriesCounter]] <- ss
 }
 
 makeSlices <- function(ss, volume) {
@@ -24,28 +51,40 @@ makeSlices <- function(ss, volume) {
     nslices <- ss$nrow*ss$ncol
     ss$slices <- ceiling(seq(ss$begin, ss$end, length=nslices))
   }
+
   return(ss)
 }
 
-anatomy <- function(ss, volume, low, high, col=gray.colors(255, start=0), name="anatomy") {
-  slice(ss, volume, low, high, col=col, name=name)
+anatomy <- function(ssm, volume, low, high, col=gray.colors(255, start=0), name="anatomy") {
+  slice(ssm, volume, low, high, col=col, name=name)
 }
 
-overlay <- function(ss, volume, low, high, col=mincDefaultCol(),
-                    symmetric=FALSE, rCol=mincDefaultRCol(), underTransparent = TRUE, name="stats", box=FALSE) {
+overlay <- function(ssm, volume, low, high, col=mincDefaultCol(),
+                    symmetric=FALSE, rCol=mincDefaultRCol(),
+                    underTransparent = TRUE, name="stats", box=FALSE) {
 
-  slice(ss, volume, low, high, col=col, name=name, underTransparent = underTransparent, symmetric = symmetric,
+  slice(ssm, volume, low, high, col=col, name=name, underTransparent = underTransparent, symmetric = symmetric,
         rCol=rCol, box=box)
 }
 
-legend <- function(ss, description=NULL) {
-  ss$legendOrder <- c(ss$legendOrder, ss$order[[length(ss$order)]])
-  ss[["legendInfo"]][[length(ss$order)]]$description = description
-  return(ss)
+addtitle <- function(ssm, title) {
+  ss <- getSS(ssm)
+  ss$title <- title
+  putSS(ssm, ss)
+  return(ssm)
 }
 
-slice <- function(ss, volume, low, high, col,reverse = FALSE, underTransparent = FALSE, symmetric=FALSE, rCol=mincDefaultRCol(),
+legend <- function(ssm, description=NULL) {
+  ss <- getSS(ssm)
+  ss$legendOrder <- c(ss$legendOrder, ss$order[[length(ss$order)]])
+  ss[["legendInfo"]][[length(ss$order)]]$description = description
+  putSS(ssm, ss)
+  return(ssm)
+}
+
+slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent = FALSE, symmetric=FALSE, rCol=mincDefaultRCol(),
                   name=NULL, box=FALSE) {
+  ss <- getSS(ssm)
   ss <- makeSlices(ss, volume)
   #message(paste(ss$slices, collapse = " "))
   sliceList <- list()
@@ -65,7 +104,8 @@ slice <- function(ss, volume, low, high, col,reverse = FALSE, underTransparent =
   ss[[name]] <- sliceList
   ss[["legendInfo"]][[name]] <- list(low=low, high=high, col=col, rCol=rCol, symmetric=symmetric)
   ss[["order"]][[length(ss$order)+1]] <- name
-  return(ss)
+  putSS(ssm, ss)
+  return(ssm)
 }
 
 assembleLegends <- function(ss) {
@@ -108,7 +148,7 @@ assembleLegends <- function(ss) {
   return(ll)
 }
 
-grobify <- function(ss) {
+grobifySliceSeries <- function(ss) {
   grobList <- list(rectGrob(gp=gpar(fill="black"))) # need to make the black rectangle optional or controlable
 
   for (i in 1:length(ss$order)) {
@@ -117,23 +157,68 @@ grobify <- function(ss) {
 
   gT <- gTree(children=do.call(gList, grobList), vp=ss$seriesVP)
 
-  if (length(ss$legendOrder) >0) {
-    vO <- viewport(layout = grid.layout(1,2,
-                                        widths=unit(c(1,4), c("null", "lines"))))
-
-    legend <- assembleLegends(ss)
-
-    g1 <- gTree(vp=viewport(layout.pos.col = 1), children=gList(gT))
-    g2 <- gTree(vp=viewport(layout.pos.col = 2), children=gList(legend))
-
-    return(gTree(children=gList(g1, g2), vp=vO))
-  } else {
+  # if (length(ss$legendOrder) >0) {
+  #   vO <- viewport(layout = grid.layout(1,2,
+  #                                       widths=unit(c(1,4), c("null", "lines"))))
+  #
+  #   legend <- assembleLegends(ss)
+  #
+  #   g1 <- gTree(vp=viewport(layout.pos.col = 1), children=gList(gT))
+  #   g2 <- gTree(vp=viewport(layout.pos.col = 2), children=gList(legend))
+  #
+  #   return(gTree(children=gList(g1, g2), vp=vO))
+  # } else {
     return(gT)
-  }
+  #}
 }
 
-draw <- function(ss) {
+grobify <- function(ssm) {
+  nseries <- length(ssm$ssl)
+
+  gs <- list()
+  widths = list()
+
+
+  # allow for an extra row if there are any titles present
+  haveTitles <- any(sapply(ssm$ssl, function(x) length(x$title))>0)
+  row <- 1
+  heights <- unit(1, "null")
+  if (haveTitles) {
+    row <- 2
+    heights <- unit.c(unit(1, "lines"), heights)
+  }
+
+  # go through all sliceSeries
+  j <- 1 # counter of which column is being worked on
+  for (i in 1:nseries) {
+    # add a title as a textGrob if title is present
+    if (length(ssm$ssl[[i]]$title) > 0) {
+      gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.col = j, layout.pos.row = 1),
+                                  children=gList(textGrob(ssm$ssl[[i]]$title)))
+    }
+    # add the slices
+    gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.col = j, layout.pos.row = row),
+                     children=gList(grobifySliceSeries(ssm$ssl[[i]])))
+    widths[[j]] <- unit(1, "null")
+    j <- j+1
+    # add the legend(s) if present
+    if (length(ssm$ssl[[i]]$legendOrder) > 0) {
+      gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.col = j, layout.pos.row = row),
+                       children=gList(assembleLegends(ssm$ssl[[i]])))
+      widths[[j]] <- unit(4, "lines")
+      j <- j+1
+    }
+  }
+  # create the viewport and assemble the list of grobs
+  vA <- viewport(layout = grid.layout(row, j-1,
+                                      widths = do.call(unit.c, widths),
+                                      heights=heights))
+  return(gTree(children=do.call(gList, gs), vp=vA))
+
+}
+
+draw <- function(ssm) {
   grid.newpage()
-  l <- grobify(ss)
+  l <- grobify(ssm)
   grid.draw(l)
 }
