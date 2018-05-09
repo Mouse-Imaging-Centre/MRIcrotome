@@ -1,0 +1,141 @@
+---
+title: "Making pretty figures using MRIcrotome"
+author: "Jason Lerch"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+Load the required data from a file; for the moment, this contains two 3D volumes; _anatVol_ and _stats_ containing the anatomy to use in the background and the output of some statistical computations.
+
+```{r}
+load("sliceData.RData")
+```
+
+The best way to use MRIcrotome is through pipes; let's load the full tidyverse for now (though only pipes are actively used). Also, the graphics subsystem is _grid_ graphics, so let's go ahead and load that as well.
+
+```{r}
+library(tidyverse)
+library(grid)
+library(MRIcrotome)
+```
+
+That's it for the set-up. On to actual package usage.
+
+## Simple figures
+
+Starting off with the simplest figure; a coronal slice through the brain.
+
+**TODO: the need for begin and end for a single slice is obnoxious**
+
+```{r}
+sliceSeries(nrow = 1, begin=200, end=300) %>% 
+  anatomy(anatVol, low=700, high=1400) %>% 
+  draw()
+```
+
+That's the basic anatomy of displaying MRI anatomy. It always begins with a call to sliceSeries, following by a call to anatomy, and finally the command to draw the results.
+
+Let's prettify it, and overlay the stats.
+
+```{r}
+sliceSeries(nrow = 1, begin=200, end=300) %>% 
+  anatomy(anatVol, low=700, high=1400) %>% 
+  overlay(stats, low=2, high=6, symmetric = T) %>%
+  draw()
+```
+
+So far, so good. A legend would be nice, though.
+
+```{r}
+sliceSeries(nrow = 1, begin=200, end=300) %>% 
+  anatomy(anatVol, low=700, high=1400) %>% 
+  overlay(stats, low=2, high=6, symmetric = T) %>%
+  legend("t-statistics") %>%
+  draw()
+```
+
+The command is called sliceSeries for a reason ...
+
+```{r, fig.width=6, fig.height=5}
+sliceSeries(nrow = 5, ncol=5, begin=100, end=350) %>% 
+  anatomy(anatVol, low=700, high=1400) %>% 
+  overlay(stats, low=2, high=6, symmetric = T) %>%
+  legend("t-statistics") %>%
+  draw()
+```
+
+You can also have more than one slice series:
+
+```{r, fig.width=3, fig.height=6}
+sliceSeries(nrow = 8, begin=100, end=350) %>% 
+  anatomy(anatVol, low=700, high=1400) %>% 
+  sliceSeries() %>% # if no arguments are specified, reuse previous sliceSeries args
+  anatomy() %>% # if no arguments are specified, reuse previous anatomy call
+  overlay(stats, low=2, high=6, symmetric = T) %>%
+  legend("t-statistics") %>%
+  draw()
+```
+
+And with some titles:
+
+```{r, fig.width=3, fig.height=6}
+sliceSeries(nrow = 8, begin=100, end=350) %>% 
+  anatomy(anatVol, low=700, high=1400) %>% 
+  addtitle("Anatomy") %>%
+  sliceSeries() %>%
+  anatomy() %>%
+  overlay(stats, low=2, high=6, symmetric = T) %>%
+  addtitle("Stats") %>%
+  legend("t-statistics") %>%
+  draw()
+```
+
+And change the layout orientation
+
+```{r, fig.width=6, fig.height=2}
+sliceSeries(ncol = 8, begin=100, end=350) %>% 
+  anatomy(anatVol, low=700, high=1400) %>% 
+  addtitle("Anatomy") %>%
+  sliceSeries() %>%
+  anatomy() %>%
+  overlay(stats, low=2, high=6, symmetric = T) %>%
+  addtitle("Stats") %>%
+  legend("t-statistics") %>%
+  draw(layout = "row")
+```
+
+Multiple legends
+
+**TODO: legend alignment with multiple legends is off**
+```{r, fig.width=6, fig.height=2}
+sliceSeries(ncol = 8, begin=100, end=350) %>% 
+  anatomy(anatVol, low=700, high=1400) %>% 
+  addtitle("Anatomy") %>%
+  legend() %>%
+  sliceSeries() %>%
+  anatomy() %>%
+  overlay(stats, low=2, high=6, symmetric = T) %>%
+  addtitle("Stats") %>%
+  legend("t-statistics") %>%
+  draw(layout = "row")
+```
+
+Let's do multiple legends on the same slice series, going with a column layout
+
+**TODO: cannot use no-args version of anatomy() if asking for a legend**
+```{r, fig.width=3, fig.height=6}
+sliceSeries(nrow = 8, begin=100, end=350) %>% 
+  anatomy(anatVol, low=700, high=1400) %>% 
+  addtitle("Anatomy") %>%
+  sliceSeries() %>%
+  anatomy(anatVol, low=700, high=1400) %>%
+  legend() %>%
+  overlay(stats, low=2, high=6, symmetric = T) %>%
+  addtitle("Stats") %>%
+  legend("t-statistics") %>%
+  draw()
+```

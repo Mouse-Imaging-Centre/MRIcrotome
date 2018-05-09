@@ -5,26 +5,63 @@ initMetaSliceSeries <- function() {
   return(ssm)
 }
 
+#' Title
+#'
+#' @param ssm
+#' @param slices
+#' @param nrow
+#' @param ncol
+#' @param dimension
+#' @param begin
+#' @param end
+#'
+#' @return
+#' @export
+#'
+#' @examples
 sliceSeries <- function(ssm=NULL,
-                        slices=NULL, nrow=4, ncol=5, dimension=2, begin=NULL, end=NULL) {
+                        slices=NULL,
+                        nrow=NULL,
+                        ncol=NULL,
+                        dimension=NULL,
+                        begin=NULL,
+                        end=NULL) {
 
   # ssm (the first arg) is provided if this is part of an ongoing pipe, but should be
   # null if this is the first initialization
   if (is.null(ssm)) {
     ssm <- initMetaSliceSeries()
+    # it is the first time sliceSeries was called in a pipe,
+    # so check that necessary args are present
+    if (is.null(nrow) & is.null(ncol)) stop("Must specify either nrow or ncol or both")
+
+    # if only one of nrow or ncol is specified, set the other to 1
+    if (is.null(nrow)) nrow <- 1
+    if (is.null(ncol)) ncol <- 1
+
+    # use a default dimension of 2
+    if (is.null(dimension)) dimension <- 2
+
   }
   else {
     ssm$seriesCounter = ssm$seriesCounter+1
   }
   # add checking for slices vs nrow and ncol
+
+  nrow <- ifelse(is.null(nrow), ssm$ssl[[ssm$seriesCounter-1]]$nrow, nrow)
+  ncol <- ifelse(is.null(ncol), ssm$ssl[[ssm$seriesCounter-1]]$ncol, ncol)
+
   gl <- grid.layout(nrow=nrow, ncol=ncol)
   seriesVP <- viewport(layout = gl)
+
+  # initialize sliceSeries list; in all cases use the previous sliceSeries' values
+  # if they were not specified here
   l <- list(nrow=nrow,
             ncol=ncol,
-            dimension=dimension,
-            slices=slices,
-            begin=begin,
-            end=end,
+            dimension=ifelse(is.null(dimension), ssm$ssl[[ssm$seriesCounter-1]]$dimension, dimension),
+            slices=if(is.null(slices) & (ssm$seriesCounter>1)) ssm$ssl[[ssm$seriesCounter-1]]$slices else slices,
+            begin=ifelse(is.null(begin), ssm$ssl[[ssm$seriesCounter-1]]$begin, begin),
+            end=ifelse(is.null(end), ssm$ssl[[ssm$seriesCounter-1]]$end, end),
             seriesVP=seriesVP,
             order=list(),
             legendInfo=list(),
@@ -55,10 +92,54 @@ makeSlices <- function(ss, volume) {
   return(ss)
 }
 
-anatomy <- function(ssm, volume, low, high, col=gray.colors(255, start=0), name="anatomy") {
-  slice(ssm, volume, low, high, col=col, name=name)
+#' Title
+#'
+#' @param ssm
+#' @param volume
+#' @param low
+#' @param high
+#' @param col
+#' @param name
+#'
+#' @return
+#' @export
+#'
+#' @examples
+anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL, col=gray.colors(255, start=0), name="anatomy") {
+  # if there is no volume specified, then reuse the previous sliceSeries' anatomy
+  if (is.null(volume)) {
+    if (ssm$seriesCounter == 1) stop("A volume must be specified the first time anatomy is used")
+    ss <- getSS(ssm)
+    ss[[name]] <- ssm$ssl[[ssm$seriesCounter-1]][["anatomy"]]
+    ss[["legendInfo"]][[name]] <-
+      list(low=ssm$ssl[[ssm$seriesCounter-1]]$low,
+           high=ssm$ssl[[ssm$seriesCounter-1]]$high,
+           col=ssm$ssl[[ssm$seriesCounter-1]]$col)
+    ss[["order"]][[length(ss$order)+1]] <- name
+    putSS(ssm, ss)
+    return(ssm)
+  } else {
+    slice(ssm, volume, low, high, col=col, name=name)
+  }
 }
 
+#' Title
+#'
+#' @param ssm
+#' @param volume
+#' @param low
+#' @param high
+#' @param col
+#' @param symmetric
+#' @param rCol
+#' @param underTransparent
+#' @param name
+#' @param box
+#'
+#' @return
+#' @export
+#'
+#' @examples
 overlay <- function(ssm, volume, low, high, col=mincDefaultCol(),
                     symmetric=FALSE, rCol=mincDefaultRCol(),
                     underTransparent = TRUE, name="stats", box=FALSE) {
@@ -67,6 +148,15 @@ overlay <- function(ssm, volume, low, high, col=mincDefaultCol(),
         rCol=rCol, box=box)
 }
 
+#' Title
+#'
+#' @param ssm
+#' @param title
+#'
+#' @return
+#' @export
+#'
+#' @examples
 addtitle <- function(ssm, title) {
   ss <- getSS(ssm)
   ss$title <- title
@@ -74,6 +164,15 @@ addtitle <- function(ssm, title) {
   return(ssm)
 }
 
+#' Title
+#'
+#' @param ssm
+#' @param description
+#'
+#' @return
+#' @export
+#'
+#' @examples
 legend <- function(ssm, description=NULL) {
   ss <- getSS(ssm)
   ss$legendOrder <- c(ss$legendOrder, ss$order[[length(ss$order)]])
@@ -172,7 +271,51 @@ grobifySliceSeries <- function(ss) {
   #}
 }
 
-grobify <- function(ssm) {
+grobify <- function(ssm, layout="column") {
+  if (layout=="column") grobifyByColumn(ssm)
+  else grobifyByRow(ssm)
+}
+
+grobifyByRow <- function(ssm) {
+  nseries <- length(ssm$ssl)
+  haveTitles <- any(sapply(ssm$ssl, function(x) length(x$title))>0)
+  haveLegends <- any(sapply(ssm$ssl, function(x) length(x$legendOrder))>0)
+
+  nrow <- nseries
+  ncol <- nseries+haveTitles+haveLegends
+
+  gs <- list()
+
+  widths <- list()
+  if (haveTitles) widths[[1]] <- unit(1, "lines")
+  widths[[length(widths)+1]] <- unit(1, "null") #rep(unit(1, "null"), nseries))
+  if (haveLegends) widths[[length(widths)+1]] <- unit(4, "lines")
+
+  column <- haveTitles+1
+
+  for (i in 1:nseries) {
+    gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.row = i,
+                                            layout.pos.col = column),
+                                children=gList(grobifySliceSeries(ssm$ssl[[i]])))
+    if (length(ssm$ssl[[i]]$title)>0) {
+      gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.row = i,
+                                              layout.pos.col = 1),
+                                  children=gList(textGrob(ssm$ssl[[i]]$title, rot=90)))
+    }
+    if (length(ssm$ssl[[i]]$legendOrder)>0) {
+      gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.col = 3, layout.pos.row = i),
+                                  children=gList(assembleLegends(ssm$ssl[[i]])))
+    }
+  }
+
+  vA <- viewport(layout = grid.layout(nrow, ncol,
+                                      widths = do.call(unit.c, widths)))
+
+  return(gTree(children=do.call(gList, gs), vp=vA))
+
+}
+
+grobifyByColumn <- function(ssm) {
   nseries <- length(ssm$ssl)
 
   gs <- list()
@@ -217,8 +360,17 @@ grobify <- function(ssm) {
 
 }
 
-draw <- function(ssm) {
+#' Title
+#'
+#' @param ssm
+#' @param layout
+#'
+#' @return
+#' @export
+#'
+#' @examples
+draw <- function(ssm, layout="column") {
   grid.newpage()
-  l <- grobify(ssm)
+  l <- grobify(ssm, layout=layout)
   grid.draw(l)
 }
