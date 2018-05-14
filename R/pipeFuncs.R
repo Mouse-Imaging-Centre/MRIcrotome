@@ -51,18 +51,15 @@ sliceSeries <- function(ssm=NULL,
   nrow <- ifelse(is.null(nrow), ssm$ssl[[ssm$seriesCounter-1]]$nrow, nrow)
   ncol <- ifelse(is.null(ncol), ssm$ssl[[ssm$seriesCounter-1]]$ncol, ncol)
 
-  gl <- grid.layout(nrow=nrow, ncol=ncol)
-  seriesVP <- viewport(layout = gl)
-
   # initialize sliceSeries list; in all cases use the previous sliceSeries' values
   # if they were not specified here
   l <- list(nrow=nrow,
             ncol=ncol,
             dimension=ifelse(is.null(dimension), ssm$ssl[[ssm$seriesCounter-1]]$dimension, dimension),
-            slices=if(is.null(slices) & (ssm$seriesCounter>1)) ssm$ssl[[ssm$seriesCounter-1]]$slices else slices,
+            slices=NULL, #if(is.null(slices) & (ssm$seriesCounter>1)) ssm$ssl[[ssm$seriesCounter-1]]$slices else slices,
             begin=ifelse(is.null(begin), ssm$ssl[[ssm$seriesCounter-1]]$begin, begin),
             end=ifelse(is.null(end), ssm$ssl[[ssm$seriesCounter-1]]$end, end),
-            seriesVP=seriesVP,
+            seriesVP=NULL, #seriesVP,
             order=list(),
             legendInfo=list(),
             legendOrder=list(),
@@ -81,6 +78,13 @@ putSS <- function(ssm, ss) {
 }
 
 makeSlices <- function(ss, volume) {
+  if (is.null(ss$seriesVP)) {
+    sliceDims <- dim(volume)[-ss$dimension]
+    gl <- grid.layout(nrow=ss$nrow, ncol=ss$ncol,
+                      widths=rep(sliceDims[1], ss$ncol),
+                      heights=rep(sliceDims[2], ss$nrow), respect = TRUE)
+    ss$seriesVP <- viewport(layout = gl)
+  }
   if (is.null(ss$slices)) {
     d <- dim(volume)
     if (is.null(ss$begin)) ss$begin <- 1
@@ -111,6 +115,7 @@ anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL, col=gray.colors(255, 
     if (ssm$seriesCounter == 1) stop("A volume must be specified the first time anatomy is used")
     ss <- getSS(ssm)
     ss[[name]] <- ssm$ssl[[ssm$seriesCounter-1]][["anatomy"]]
+    ss[["seriesVP"]] <- ssm$ssl[[ssm$seriesCounter-1]][["seriesVP"]]
     ss[["legendInfo"]][[name]] <-
       list(low=ssm$ssl[[ssm$seriesCounter-1]]$low,
            high=ssm$ssl[[ssm$seriesCounter-1]]$high,
@@ -147,6 +152,8 @@ overlay <- function(ssm, volume, low, high, col=mincDefaultCol(),
   slice(ssm, volume, low, high, col=col, name=name, underTransparent = underTransparent, symmetric = symmetric,
         rCol=rCol, box=box)
 }
+
+
 
 #' Title
 #'
@@ -188,6 +195,7 @@ slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent 
   #message(paste(ss$slices, collapse = " "))
   sliceList <- list()
   counter <- 1
+  sliceDims <- dim(volume)[-ss$dimension]
   for (i in 1:ss$nrow) {
     for (j in 1:ss$ncol) {
       sliceList[[counter]] <- sliceImage(volume, ss$dimension,low,high,col=col,
@@ -196,12 +204,52 @@ slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent 
                                          symmetric = symmetric,
                                          rCol = rCol, box=box,
                                          vp=viewport(layout.pos.row = i,
-                                                     layout.pos.col = j))
+                                                     layout.pos.col = j,
+                                                     xscale=c(0, sliceDims[1]),
+                                                     yscale=c(0, sliceDims[2])))
       counter <- counter+1
     }
   }
   ss[[name]] <- sliceList
   ss[["legendInfo"]][[name]] <- list(low=low, high=high, col=col, rCol=rCol, symmetric=symmetric)
+  ss[["order"]][[length(ss$order)+1]] <- name
+  putSS(ssm, ss)
+  return(ssm)
+}
+
+#' Title
+#'
+#' @param ssm
+#' @param volume
+#' @param levels
+#' @param col
+#' @param lty
+#' @param lwd
+#' @param name
+#'
+#' @return
+#' @export
+#'
+#' @examples
+contours <- function(ssm, volume, levels, col="red", lty=1, lwd=1, name="contours") {
+  ss <- getSS(ssm)
+  ss <- makeSlices(ss, volume)
+  sliceList <- list()
+  counter <- 1
+  sliceDims <- dim(volume)[-ss$dimension]
+  for (i in 1:ss$nrow) {
+    for (j in 1:ss$ncol) {
+      sliceList[[counter]] <- sliceContours(volume, ss$dimension,levels = levels, col=col, lty=lty, lwd=lwd,
+                                         slice=ss$slices[counter],
+                                         vp=viewport(layout.pos.row = i,
+                                                     layout.pos.col = j,
+                                                     xscale=c(0, sliceDims[1]),
+                                                     yscale=c(0, sliceDims[2])))
+      counter <- counter+1
+    }
+  }
+  ss[[name]] <- sliceList
+  #ss[["legendInfo"]][[name]] <- list(low=low, high=high, col=col, rCol=rCol, symmetric=symmetric)
   ss[["order"]][[length(ss$order)+1]] <- name
   putSS(ssm, ss)
   return(ssm)
@@ -255,6 +303,10 @@ grobifySliceSeries <- function(ss) {
   }
 
   gT <- gTree(children=do.call(gList, grobList), vp=ss$seriesVP)
+  #gT <- gTree(children=do.call(gList, grobList), vp=ss$seriesVP, childrenvp=ss$anatomy[[1]][[1]]$vp)
+  #gT <- gTree(children=do.call(gList, grobList), childrenvp=ss$seriesVP)
+  #gT <- gTree(do.call(gList, grobList), vp=ss$seriesVP)
+  #gT <- gList(grobList, vp=ss$seriesVP)
 
   # if (length(ss$legendOrder) >0) {
   #   vO <- viewport(layout = grid.layout(1,2,

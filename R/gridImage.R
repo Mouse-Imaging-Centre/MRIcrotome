@@ -54,6 +54,32 @@ sliceImage <- function(volume,
     }
 }
 
+sliceContours <- function(volume,
+                          dimension=2,
+                          slice=NULL,
+                          levels=NULL,
+                          vp=NULL,
+                          col="white",
+                          lty=1,
+                          lwd=1) {
+  if (is.null(levels)) stop("must specify levels")
+  s <- RMINC:::getSlice(volume, slice, dimension)
+  d <- dim(s$slice)
+
+  colVector <- col[floor(seq.int(from=1, to=length(col), length.out = length(levels)))]
+  ltyVector <- lty[floor(seq.int(from=1, to=length(lty), length.out = length(levels)))]
+  lwdVector <- lwd[floor(seq.int(from=1, to=length(lwd), length.out = length(levels)))]
+
+
+  lines <- contourLines(1:d[1], 1:d[2], s$slice, levels=levels) %>%
+    map( ~ linesGrob(.$x, .$y, vp=vp, default.units = "native",
+                     gp=gpar(col=colVector[match(.$level, levels)],
+                             lty=ltyVector[match(.$level, levels)],
+                             lwd=lwdVector[match(.$level, levels)]))) %>%
+    do.call(gList, .)
+  return(lines)
+}
+
 mincGridPlotAnatAndStatsSlice <- function(anatomy,
                                           statistics,
                                           slice = NULL,
