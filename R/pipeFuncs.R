@@ -117,7 +117,8 @@ anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL, col=gray.colors(255, 
     ss[[name]] <- ssm$ssl[[ssm$seriesCounter-1]][["anatomy"]]
     ss[["seriesVP"]] <- ssm$ssl[[ssm$seriesCounter-1]][["seriesVP"]]
     ss[["legendInfo"]][[name]] <-
-      list(low=ssm$ssl[[ssm$seriesCounter-1]]$low,
+      list(type="slice",
+           low=ssm$ssl[[ssm$seriesCounter-1]]$low,
            high=ssm$ssl[[ssm$seriesCounter-1]]$high,
            col=ssm$ssl[[ssm$seriesCounter-1]]$col)
     ss[["order"]][[length(ss$order)+1]] <- name
@@ -211,7 +212,7 @@ slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent 
     }
   }
   ss[[name]] <- sliceList
-  ss[["legendInfo"]][[name]] <- list(low=low, high=high, col=col, rCol=rCol, symmetric=symmetric)
+  ss[["legendInfo"]][[name]] <- list(type="slice", low=low, high=high, col=col, rCol=rCol, symmetric=symmetric)
   ss[["order"]][[length(ss$order)+1]] <- name
   putSS(ssm, ss)
   return(ssm)
@@ -251,6 +252,7 @@ contours <- function(ssm, volume, levels, col="red", lty=1, lwd=1, name="contour
   ss[[name]] <- sliceList
   #ss[["legendInfo"]][[name]] <- list(low=low, high=high, col=col, rCol=rCol, symmetric=symmetric)
   ss[["order"]][[length(ss$order)+1]] <- name
+  ss[["legendInfo"]][[name]] <- list(type="contour", levels=levels, col=col, lty=lty, lwd=lwd)
   putSS(ssm, ss)
   return(ssm)
 }
@@ -274,12 +276,16 @@ assembleLegends <- function(ss) {
   legendGrobs <- list()
   for (i in 1:length(ss$legendOrder)) {
     li <- ss$legendInfo[[ss$legendOrder[[i]]]]
-    legendGrobs[[i]] <- gTree(vp=viewport(layout.pos.row = (i*2)-1, x=1),
-                              children=gList(sliceLegendGrob(li$low, li$high, li$col,
-                                                             li$rCol, li$symmetric,
-                                                             colWidth = unit(1, "lines"),
-                                                             description = li$description)))
+    if (li$type == "slice")
+      gl <- gList(sliceLegendGrob(li$low, li$high, li$col,
+                                  li$rCol, li$symmetric,
+                                  colWidth = unit(1, "lines"),
+                                  description = li$description))
+    else if (li$type == "contour")
+      gl <- gList(contourLegendGrob(levels=li$levels, col=li$col, lty=li$lty, lwd=li$lwd, description=li$description))
 
+    legendGrobs[[i]] <- gTree(vp=viewport(layout.pos.row = (i*2)-1, x=1),
+                              children=gl)
   }
 
   ll <- gTree(vp=legendViewport, children=do.call(gList, legendGrobs))
@@ -288,10 +294,10 @@ assembleLegends <- function(ss) {
   # max of the widths of the inner legend viewport
   # this should be doable through just parameters somewhere to a grob or viewport, but I could not quite make that work,
   # hence this workaround on overwriting widths
-  mwidth <- max(sapply(ll$children, function(x) x$children[[1]]$childrenvp$parent$layout$widths[2]))
-  for (i in 1:length(ll$children)) {
-    ll$children[[i]]$children[[1]]$childrenvp$parent$layout$widths[2] <- unit(mwidth, "lines")
-  }
+  #mwidth <- max(sapply(ll$children, function(x) x$children[[1]]$childrenvp$parent$layout$widths[2]))
+  #for (i in 1:length(ll$children)) {
+  #  ll$children[[i]]$children[[1]]$childrenvp$parent$layout$widths[2] <- unit(mwidth, "lines")
+  #}
   return(ll)
 }
 

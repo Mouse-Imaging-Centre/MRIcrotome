@@ -1,3 +1,48 @@
+contourLegendGrob <- function(levels,
+                              col,
+                              lty,
+                              lwd,
+                              description=NULL,
+                              colWidth=unit(1, "null")) {
+
+  nrows <- length(levels)
+
+  maxWidth <- max(c(convertWidth(stringWidth(levels), "lines")))
+
+  if (is.null(description)) {
+    ncols <- 2
+    widths <- unit.c(colWidth, unit(maxWidth, "lines"))
+  } else {
+    ncols <- 3
+    widths <- unit.c(colWidth, unit(maxWidth, "lines"), unit(1, "lines"))
+  }
+
+  vLayout <- viewport(name="layout",
+                      layout=grid.layout(nrow = nrows, ncol = ncols,
+                                         widths = widths))
+
+  col <- col[floor(seq.int(from=1, to=length(col), length.out = length(levels)))]
+  lty <- lty[floor(seq.int(from=1, to=length(lty), length.out = length(levels)))]
+  lwd <- lwd[floor(seq.int(from=1, to=length(lwd), length.out = length(levels)))]
+
+  lgrobs <- pmap( list(row=1:length(levels), col=col, lty=lty, lwd=lwd), function(row,col,lty,lwd)
+    linesGrob(x=unit(c(0,1), "native"),
+              y=unit(c(0.5,0.5), "native"),
+              gp=gpar(col=col, lwd=lwd, lty=lty), vp=viewport(layout.pos.col = 1,layout.pos.row = row)) )
+  tgrobs <- map2(levels, 1:length(levels), ~ textGrob(.x, vp=viewport(layout.pos.row = .y,
+                                                                     layout.pos.col = 2)))
+
+  if (!is.null(description)) {
+    tgrobs <- c(tgrobs,
+                list(textGrob(description, y = unit(0.5, "npc"), rot=90, vp=viewport(layout.pos.row=1:length(levels),
+                                                                                layout.pos.col=3))))
+  }
+
+  gTree(name="contourLegend", children=do.call(gList, c(lgrobs, tgrobs)), vp = vLayout)
+
+
+}
+
 sliceLegendGrob <- function(low, high,
                             col = mincDefaultCol(),
                             rcol = mincDefaultRCol(),
