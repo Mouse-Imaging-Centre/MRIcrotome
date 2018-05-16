@@ -74,7 +74,7 @@ sliceLegendGrob <- function(low, high,
     ncol <- 3
     widths <- unit.c(colWidth, unit(c(maxLength,1), c("lines", "lines")))
   }
-  vLayout <- viewport(name="layout", w=0.4, #just="right",
+  vLayout <- viewport(name="layout", x=0.55*sum(widths),
                       layout=grid.layout(nrow=3, ncol=ncol,
                                          widths = widths,
                                          heights=unit(c(1,0.5,1), c("null", "lines", "null"))))
