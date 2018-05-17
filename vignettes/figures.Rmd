@@ -24,10 +24,9 @@ That's it for the set-up. On to actual package usage.
 
 Starting off with the simplest figure; a coronal slice through the brain.
 
-**TODO: the need for begin and end for a single slice is obnoxious**
 
 ```{r}
-sliceSeries(nrow = 1, begin=200, end=300) %>% 
+sliceSeries(nrow = 1, slices=200) %>% 
   anatomy(anatVol, low=700, high=1400) %>% 
   draw()
 ```
@@ -37,7 +36,7 @@ That's the basic anatomy of displaying MRI anatomy. It always begins with a call
 Let's prettify it, and overlay the stats.
 
 ```{r}
-sliceSeries(nrow = 1, begin=200, end=300) %>% 
+sliceSeries(nrow = 1, slices=200) %>% 
   anatomy(anatVol, low=700, high=1400) %>% 
   overlay(stats, low=2, high=6, symmetric = T) %>%
   draw()
@@ -133,3 +132,67 @@ sliceSeries(nrow = 8, begin=100, end=350) %>%
   legend("t-statistics") %>%
   draw()
 ```
+
+It can also do contours
+
+```{r}
+sliceSeries(nrow = 1, begin=200, end=300) %>% 
+  anatomy(anatVol, low=700, high=1400) %>% 
+  contours(anatVol, levels=c(1000, 1400), col="blue") %>%
+  draw()
+```
+
+Of course contours can be mixed with sliceSeries as you please
+
+```{r}
+sliceSeries(nrow = 1, begin=200, end=300) %>% 
+  anatomy(anatVol, low=700, high=1400) %>% 
+  sliceSeries() %>%
+  anatomy() %>%
+  contours(anatVol, levels=c(1000, 1400), col="blue") %>%
+  sliceSeries() %>%
+  contours(anatVol, levels=c(1000, 1400), col="blue") %>%
+  draw()
+```
+
+Contours can be given different colours, linetypes, and widths
+
+```{r}
+sliceSeries(nrow = 1, begin=200, end=300) %>% 
+  contours(anatVol, levels=c(1000, 1400), col=c("blue", "red"), lwd=1:2, lty=c(1,3)) %>%
+  draw()
+```
+
+The most likely use is combined with stats - let's highlight the most significant:
+
+```{r}
+sliceSeries(nrow = 1, begin=200, end=300) %>% 
+  anatomy(anatVol, low=700, high=1400) %>% 
+  overlay(stats, low=2, high=6, symmetric = T) %>%
+  legend("t-statistics") %>%
+  contours(abs(stats), levels=c(3,5), lwd=2, lty=c(3,1), col="green") %>%
+  draw()
+```
+
+Contours can of course have legends, too.
+
+```{r}
+sliceSeries(nrow = 1, begin=200, end=300) %>% 
+  anatomy(anatVol, low=700, high=1400) %>% 
+  overlay(stats, low=2, high=6, symmetric = T) %>%
+  legend("t-statistics") %>%
+  contours(abs(stats), levels=c(3,5), lwd=2, lty=c(3,1), col="green") %>%
+  legend("Most sig.") %>%
+  draw()
+```
+
+And contours can take on any colour scale
+
+```{r}
+sliceSeries(nrow = 1, begin=200, end=300) %>% 
+  anatomy(anatVol, low=700, high=1400) %>% 
+  contours(abs(stats), levels=2:6, col=rainbow(255)) %>%
+  legend("t statistics") %>%
+  draw()
+```
+

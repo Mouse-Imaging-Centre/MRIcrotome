@@ -56,9 +56,9 @@ sliceSeries <- function(ssm=NULL,
   l <- list(nrow=nrow,
             ncol=ncol,
             dimension=ifelse(is.null(dimension), ssm$ssl[[ssm$seriesCounter-1]]$dimension, dimension),
-            slices=NULL, #if(is.null(slices) & (ssm$seriesCounter>1)) ssm$ssl[[ssm$seriesCounter-1]]$slices else slices,
-            begin=ifelse(is.null(begin), ssm$ssl[[ssm$seriesCounter-1]]$begin, begin),
-            end=ifelse(is.null(end), ssm$ssl[[ssm$seriesCounter-1]]$end, end),
+            slices=slices, #if(is.null(slices) & (ssm$seriesCounter>1)) ssm$ssl[[ssm$seriesCounter-1]]$slices else slices,
+            begin=if (is.null(begin) & ssm$seriesCounter>1) {ssm$ssl[[ssm$seriesCounter-1]]$begin} else {begin },
+            end=if (is.null(end) & ssm$seriesCounter>1) {ssm$ssl[[ssm$seriesCounter-1]]$end} else {end},
             seriesVP=NULL, #seriesVP,
             order=list(),
             legendInfo=list(),
@@ -92,6 +92,9 @@ makeSlices <- function(ss, volume) {
     nslices <- ss$nrow*ss$ncol
     ss$slices <- ceiling(seq(ss$begin, ss$end, length=nslices))
   }
+
+  if (length(ss$slices) != ss$ncol*ss$nrow)
+    warning("Number of slices does not equal nrow*ncol, likely resulting in weird figures")
 
   return(ss)
 }
