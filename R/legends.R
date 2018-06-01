@@ -44,8 +44,8 @@ contourLegendGrob <- function(levels,
 }
 
 sliceLegendGrob <- function(low, high,
-                            col = mincDefaultCol(),
-                            rcol = mincDefaultRCol(),
+                            col = defaultCol(),
+                            rcol = defaultRCol(),
                             symmetric=FALSE,
                             description=NULL,
                             lowText = NULL,

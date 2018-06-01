@@ -191,8 +191,34 @@ And contours can take on any colour scale
 ```{r}
 sliceSeries(nrow = 1, begin=200, end=300) %>% 
   anatomy(anatVol, low=700, high=1400) %>% 
-  contours(abs(stats), levels=2:6, col=rainbow(255)) %>%
+  contours(abs(stats), levels=2:6, col=topo.colors(255), lty=3) %>%
   legend("t statistics") %>%
   draw()
 ```
+
+And of course works in slice series with multiple slices too
+
+```{r}
+sliceSeries(nrow=5, ncol=6, begin=70, end=400) %>%
+  contours(anatVol, levels=c(1000, 1200, 1500), col=gray.colors(255)) %>%
+  draw()
+```
+
+Opacity can be controlled with the alpha parameter to anatomy and overlay:
+
+```{r}
+sliceSeries(nrow=5, begin=150, end=250) %>%
+  anatomy(anatVol, low=700, high=1400) %>%
+  overlay(stats, 2, 6, symmetric = T, alpha=0.1) %>%
+  addtitle("alpha=0.1") %>%
+  sliceSeries() %>% anatomy() %>%
+  overlay(stats, 2, 6, symmetric = T, alpha=0.5) %>%
+  addtitle("alpha=0.5") %>%  
+  sliceSeries() %>% anatomy() %>%
+  overlay(stats, 2, 6, symmetric = T, alpha=0.9) %>%
+  addtitle("alpha=0.9") %>%  
+  draw()
+```
+
+**TODO: empty subsequent sliceSeries and anatomy calls bug out if a single slice (rather than begin and end) were specified**
 

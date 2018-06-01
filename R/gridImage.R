@@ -8,7 +8,8 @@ sliceImage <- function(volume,
                        reverse = FALSE, underTransparent = FALSE,
                        col = gray.colors(255),
                        symmetric=FALSE,
-                       rCol = mincDefaultRCol(),
+                       rCol = defaultRCol(),
+                       alpha=NULL,
                        box=FALSE,
                        vp=NULL) {
 
@@ -21,6 +22,13 @@ sliceImage <- function(volume,
   else {
     m <- 1
   }
+
+  if (!is.null(alpha)) {
+    alphastr <- as.hexmode(floor(alpha*255))
+    col = paste0(substr(col, 1, 7), alphastr)
+    rCol = paste0(substr(rCol, 1, 7), alphastr)
+  }
+
   imRange <- RMINC:::getRangeFromHistogram(volume, low, high)
   s$slice <- RMINC:::scaleSlice(s$slice, imRange[1] * m, imRange[2] *
                           m, underTransparent = underTransparent)
@@ -80,56 +88,14 @@ sliceContours <- function(volume,
   return(lines)
 }
 
-mincGridPlotAnatAndStatsSlice <- function(anatomy,
-                                          statistics,
-                                          slice = NULL,
-                                          dimension = 2,
-                                          low = min(statistics,
-                                                    na.rm = TRUE),
-                                          high = max(statistics, na.rm = TRUE),
-                                          anatLow = min(anatomy,
-                                                        na.rm = TRUE),
-                                          anatHigh = max(anatomy, na.rm = TRUE), symmetric = FALSE,
-                                          col = NULL, rcol = NULL, legend = NULL) {
 
-  if (length(dim(anatomy)) != 3)
-    stop("anatomy must be 3 dimensional, you may be missing a call to mincArray")
-  if (is.null(slice)) {
-    halfdims <- ceiling(dim(anatomy)/2)
-    slice <- halfdims[dimension]
-  }
-  if (is.null(col)) {
-    if (symmetric == TRUE) {
-      col <- colorRampPalette(c("red", "yellow"))(255)
-    }
-    else {
-      col <- rainbow(255)
-    }
-  }
-  if (is.null(rcol) && symmetric) {
-    rcol <- colorRampPalette(c("blue", "turquoise1"))(255)
-  }
-  anatCols = gray.colors(255, start = 0)
-  gA <- mincGridImage(anatomy, dimension, slice, col = anatCols,
-            low = anatLow, high = anatHigh)
-  gS1 <- mincGridImage(statistics, dimension, slice,
-            col = col, underTransparent = TRUE, low = low, high = high)
-  if (symmetric) {
-    gS2 <- mincGridImage(statistics, dimension, slice,
-              col = rcol, underTransparent = TRUE,
-              reverse = TRUE, low = low, high = high)
-    out <- gList(gA, gS1, gS2)
-  }
-  else { out <- gList(gA, gS1)}
-  return(out)
+
+defaultCol <- function() {
+  getOption("MRIcrotomeCol", colorRampPalette(c("red", "yellow"))(255))
 }
 
-mincDefaultCol <- function() {
-  getOption("RMINCcol", colorRampPalette(c("red", "yellow"))(255))
-}
-
-mincDefaultRCol <- function() {
-  getOption("RMINCrcol", colorRampPalette(c("blue", "turquoise1"))(255))
+defaultRCol <- function() {
+  getOption("MRIcrotomeRcol", colorRampPalette(c("blue", "turquoise1"))(255))
 }
 
 

@@ -57,6 +57,7 @@ sliceSeries <- function(ssm=NULL,
             ncol=ncol,
             dimension=ifelse(is.null(dimension), ssm$ssl[[ssm$seriesCounter-1]]$dimension, dimension),
             slices=slices, #if(is.null(slices) & (ssm$seriesCounter>1)) ssm$ssl[[ssm$seriesCounter-1]]$slices else slices,
+            #slices=if (is.null(slices) & ssm$seriesCounter>1) {ssm$ssl[[ssm$seriesCounter-1]]} else slices,
             begin=if (is.null(begin) & ssm$seriesCounter>1) {ssm$ssl[[ssm$seriesCounter-1]]$begin} else {begin },
             end=if (is.null(end) & ssm$seriesCounter>1) {ssm$ssl[[ssm$seriesCounter-1]]$end} else {end},
             seriesVP=NULL, #seriesVP,
@@ -78,6 +79,8 @@ putSS <- function(ssm, ss) {
 }
 
 makeSlices <- function(ss, volume) {
+  #message("seriesVP", ss$seriesVP)
+  #message("slices", ss$slices)
   if (is.null(ss$seriesVP)) {
     sliceDims <- dim(volume)[-ss$dimension]
     gl <- grid.layout(nrow=ss$nrow, ncol=ss$ncol,
@@ -112,7 +115,7 @@ makeSlices <- function(ss, volume) {
 #' @export
 #'
 #' @examples
-anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL, col=gray.colors(255, start=0), name="anatomy") {
+anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL, col=gray.colors(255, start=0), alpha=NULL, name="anatomy") {
   # if there is no volume specified, then reuse the previous sliceSeries' anatomy
   if (is.null(volume)) {
     if (ssm$seriesCounter == 1) stop("A volume must be specified the first time anatomy is used")
@@ -128,7 +131,7 @@ anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL, col=gray.colors(255, 
     putSS(ssm, ss)
     return(ssm)
   } else {
-    slice(ssm, volume, low, high, col=col, name=name)
+    slice(ssm, volume, low, high, col=col, alpha=alpha, name=name)
   }
 }
 
@@ -149,12 +152,12 @@ anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL, col=gray.colors(255, 
 #' @export
 #'
 #' @examples
-overlay <- function(ssm, volume, low, high, col=mincDefaultCol(),
-                    symmetric=FALSE, rCol=mincDefaultRCol(),
+overlay <- function(ssm, volume, low, high, col=defaultCol(),
+                    symmetric=FALSE, rCol=defaultRCol(), alpha=NULL,
                     underTransparent = TRUE, name="stats", box=FALSE) {
 
   slice(ssm, volume, low, high, col=col, name=name, underTransparent = underTransparent, symmetric = symmetric,
-        rCol=rCol, box=box)
+        rCol=rCol, alpha=alpha, box=box)
 }
 
 
@@ -192,8 +195,8 @@ legend <- function(ssm, description=NULL) {
   return(ssm)
 }
 
-slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent = FALSE, symmetric=FALSE, rCol=mincDefaultRCol(),
-                  name=NULL, box=FALSE) {
+slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent = FALSE, symmetric=FALSE,
+                  rCol=defaultRCol(), alpha=NULL,name=NULL, box=FALSE) {
   ss <- getSS(ssm)
   ss <- makeSlices(ss, volume)
   #message(paste(ss$slices, collapse = " "))
@@ -206,7 +209,7 @@ slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent 
                                          slice=ss$slices[counter],
                                          underTransparent = underTransparent,
                                          symmetric = symmetric,
-                                         rCol = rCol, box=box,
+                                         rCol = rCol, alpha=alpha, box=box,
                                          vp=viewport(layout.pos.row = i,
                                                      layout.pos.col = j,
                                                      xscale=c(0, sliceDims[1]),
