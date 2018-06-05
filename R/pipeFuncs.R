@@ -152,10 +152,11 @@ anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL, col=gray.colors(255, 
 #' @export
 #'
 #' @examples
-overlay <- function(ssm, volume, low, high, col=defaultCol(),
+overlay <- function(ssm, volume, low=NULL, high=NULL, col=defaultCol(),
                     symmetric=FALSE, rCol=defaultRCol(), alpha=NULL,
-                    underTransparent = TRUE, name="stats", box=FALSE) {
+                    underTransparent = TRUE, name=NULL, box=FALSE) {
 
+  if (is.null(name)) name <- paste0("overlay#", ssm$seriesCounter)
   slice(ssm, volume, low, high, col=col, name=name, underTransparent = underTransparent, symmetric = symmetric,
         rCol=rCol, alpha=alpha, box=box)
 }
