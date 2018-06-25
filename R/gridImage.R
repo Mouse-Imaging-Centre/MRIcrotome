@@ -57,7 +57,8 @@ sliceImage <- function(volume,
     colourizedSlice <- t(colourizedSlice)
     #rasterImage(colourizedSlice, xleft = 0, xright = sliceDims[1],
     #            ytop = 0, ybottom = sliceDims[2])
-    g <- rasterGrob(colourizedSlice, vp=vp) #
+    g <- rasterGrob(colourizedSlice, vp=vp, width = unit(sliceDims[1], "native"),
+                    height = unit(sliceDims[2], "native")) #
     #grid.raster(colourizedSlice)
   #
   #return(invisible(NULL))
@@ -70,7 +71,8 @@ sliceImage <- function(volume,
                                  underTransparent=TRUE,
                                  col=rCol, vp=vp)))
     } else {
-  return(gList(g, rectGrob(gp=gpar(col="black", fill="#FFFFFF00"), vp=vp)))
+  #return(gList(g, rectGrob(gp=gpar(col="black", fill="#FFFFFF00"), vp=vp)))
+      return(gList(g))
     }
 }
 
@@ -83,7 +85,7 @@ sliceContours <- function(volume,
                           lty=1,
                           lwd=1) {
   if (is.null(levels)) stop("must specify levels")
-  s <- RMINC:::getSlice(volume, slice, dimension)
+  s <- getSlice(volume, slice, dimension)
   d <- dim(s$slice)
 
   colVector <- col[floor(seq.int(from=1, to=length(col), length.out = length(levels)))]

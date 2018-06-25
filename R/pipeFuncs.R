@@ -64,6 +64,7 @@ sliceSeries <- function(ssm=NULL,
             order=list(),
             legendInfo=list(),
             legendOrder=list(),
+            sliceIndicator=NULL,
             title=list())
   class(l) <- c("sliceSeries", "list")
   ssm$ssl[[ssm$seriesCounter]] <- l
@@ -160,7 +161,6 @@ overlay <- function(ssm, volume, low=NULL, high=NULL, col=defaultCol(),
   slice(ssm, volume, low, high, col=col, name=name, underTransparent = underTransparent, symmetric = symmetric,
         rCol=rCol, alpha=alpha, box=box)
 }
-
 
 
 #' Title
@@ -264,6 +264,49 @@ contours <- function(ssm, volume, levels, col="red", lty=1, lwd=1, name="contour
   return(ssm)
 }
 
+#' Title
+#'
+#' @param ssm
+#' @param volume
+#' @param dimension
+#' @param slice
+#' @param low
+#' @param high
+#' @param col
+#'
+#' @return
+#' @export
+#'
+#' @examples
+anatomySliceIndicator <- function(ssm, volume, dimension, slice, low, high, col) {
+  ss <- getSS(ssm)
+  sliceDims <- dim(volume)[-dimension]
+  #message(sliceDims)
+  indVP <- viewport(layout.pos.row = 1,
+                    layout.pos.col = 1,
+                    xscale = c(0, sliceDims[1]),
+                    yscale = c(0, sliceDims[2]))
+  overVP <- viewport(layout = grid.layout(1, 1, widths = sliceDims[1],
+                                          heights = sliceDims[2],
+                                          respect = T))
+  indSlice <- sliceImage(volume, dimension,slice, low, high, col=col, vp=indVP)
+  lineList <- list()
+  counter <- 1
+  for (i in 1:ss$nrow) {
+    for (j in 1:ss$ncol) {
+      lineList[[counter]] <- linesGrob(x = c(rep(ss$slices[counter], 2)),
+                                       y = c(0,sliceDims[2]), # TODO: not sure why this goes beyond the image extent
+                                       default.units = "native",
+                                       vp=indVP, gp=gpar(col="green"))
+      #message(ss$slices[counter])
+      counter <- counter+1
+    }
+  }
+  ss[["sliceIndicator"]] <- gTree(vp=overVP, children=do.call(gList, c(indSlice, lineList)))
+  putSS(ssm, ss)
+  return(ssm)
+}
+
 assembleLegends <- function(ss) {
 
   # some weirdness for the layout; I want alternating legends and small spacers, so that's
@@ -289,7 +332,8 @@ assembleLegends <- function(ss) {
                                   colWidth = unit(1, "lines"),
                                   description = li$description))
     else if (li$type == "contour")
-      gl <- gList(contourLegendGrob(levels=li$levels, col=li$col, lty=li$lty, lwd=li$lwd, description=li$description))
+      gl <- gList(contourLegendGrob(levels=li$levels, col=li$col, lty=li$lty, lwd=li$lwd,
+                                    description=li$description))
 
     legendGrobs[[i]] <- gTree(vp=viewport(layout.pos.row = (i*2)-1, x=1),
                               children=gl)
@@ -305,7 +349,25 @@ assembleLegends <- function(ss) {
   #for (i in 1:length(ll$children)) {
   #  ll$children[[i]]$children[[1]]$childrenvp$parent$layout$widths[2] <- unit(mwidth, "lines")
   #}
-  return(ll)
+
+
+  if (is.null(ss$sliceIndicator)) {
+    return(ll)
+  } else {
+    vpWithIndicator <- viewport(layout=grid.layout(nrow=2, ncol=1,
+                                                   heights=unit(c(0.15,0.85), c("null", "null"))))
+    ind <- gTree(vp=viewport(layout.pos.row = 1, layout.pos.col = 1),
+                 children=gList(ss$sliceIndicator))
+    rest <- gTree(vp=viewport(layout.pos.row = 2, layout.pos.col = 1),
+                  children=gList(ll))
+    return(
+      gTree(vp=vpWithIndicator, children=gList(ind, rest))
+    )
+    #return(
+    #  gTree(vp=viewport(layout = grid.layout()), children=gList(rest))
+    #)
+
+  }
 }
 
 grobifySliceSeries <- function(ss) {
