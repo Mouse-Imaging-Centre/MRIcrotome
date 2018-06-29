@@ -220,5 +220,38 @@ sliceSeries(nrow=5, begin=150, end=250) %>%
   draw()
 ```
 
-**TODO: empty subsequent sliceSeries and anatomy calls bug out if a single slice (rather than begin and end) were specified**
+And you can add indicators of your slice selection
 
+```{r}
+sliceSeries(nrow=5, begin=150, end=250) %>%
+  anatomy(anatVol, low=700, high=1400) %>%
+  overlay(stats, 2, 6, symmetric = T, alpha=0.1) %>%
+  addtitle("alpha=0.1") %>%
+  sliceSeries() %>% anatomy() %>%
+  overlay(stats, 2, 6, symmetric = T, alpha=0.5) %>%
+  addtitle("alpha=0.5") %>%  
+  sliceSeries() %>% anatomy() %>%
+  overlay(stats, 2, 6, symmetric = T, alpha=0.9) %>%
+  addtitle("alpha=0.9") %>%  
+  legend("t-statistics") %>%
+  contourSliceIndicator(anatVol, 1, 145, c(700, 1400)) %>%
+  draw()
+```
+
+If you'd rather display a slice underneath the slice indicators, you can do that too
+
+```{r}
+sliceSeries(nrow=5, begin=150, end=250) %>%
+  anatomy(anatVol, low=700, high=1400) %>%
+  overlay(stats, 2, 6, symmetric = T, alpha=0.1) %>%
+  addtitle("alpha=0.1") %>%
+  sliceSeries() %>% anatomy() %>%
+  overlay(stats, 2, 6, symmetric = T, alpha=0.5) %>%
+  addtitle("alpha=0.5") %>%  
+  sliceSeries() %>% anatomy() %>%
+  overlay(stats, 2, 6, symmetric = T, alpha=0.9) %>%
+  addtitle("alpha=0.9") %>%  
+  legend("t-statistics") %>%
+  anatomySliceIndicator(anatVol, 1, 145, 700, 1400) %>%
+  draw()
+```

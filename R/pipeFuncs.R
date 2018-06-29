@@ -278,18 +278,50 @@ contours <- function(ssm, volume, levels, col="red", lty=1, lwd=1, name="contour
 #' @export
 #'
 #' @examples
-anatomySliceIndicator <- function(ssm, volume, dimension, slice, low, high, col) {
-  ss <- getSS(ssm)
+anatomySliceIndicator <- function(ssm, volume, dimension, slice, low, high, col=gray.colors(255, start=0), lineColour="green") {
+  indVP <- setupSliceIndicatorVP(volume, dimension)
+  indSlice <- sliceImage(volume, dimension,slice, low, high, col=col, vp=indVP)
+  return(sliceIndicator(ssm, volume, dimension, indSlice, indVP))
+}
+
+#' Title
+#'
+#' @param ssm
+#' @param volume
+#' @param dimension
+#' @param slice
+#' @param levels
+#' @param col
+#' @param lty
+#' @param lwd
+#'
+#' @return
+#' @export
+#'
+#' @examples
+contourSliceIndicator <- function(ssm, volume, dimension, slice, levels, col="red", lty=1, lwd=1, lineColour="black") {
+  indVP <- setupSliceIndicatorVP(volume, dimension)
+  indContour <- sliceContours(volume, dimension,levels = levels, col=col, lty=lty, lwd=lwd,
+                              slice=slice, vp=indVP)
+  return(sliceIndicator(ssm, volume, dimension, indContour, indVP, "black"))
+}
+
+setupSliceIndicatorVP <- function(volume, dimension) {
   sliceDims <- dim(volume)[-dimension]
-  #message(sliceDims)
   indVP <- viewport(layout.pos.row = 1,
                     layout.pos.col = 1,
                     xscale = c(0, sliceDims[1]),
                     yscale = c(0, sliceDims[2]))
+  return(indVP)
+}
+
+sliceIndicator <- function(ssm, volume, dimension, bgGrob, indVP, lineColour="green") {
+  ss <- getSS(ssm)
+  sliceDims <- dim(volume)[-dimension]
   overVP <- viewport(layout = grid.layout(1, 1, widths = sliceDims[1],
                                           heights = sliceDims[2],
                                           respect = T))
-  indSlice <- sliceImage(volume, dimension,slice, low, high, col=col, vp=indVP)
+  #indSlice <- sliceImage(volume, dimension,slice, low, high, col=col, vp=indVP)
   lineList <- list()
   counter <- 1
   for (i in 1:ss$nrow) {
@@ -297,12 +329,12 @@ anatomySliceIndicator <- function(ssm, volume, dimension, slice, low, high, col)
       lineList[[counter]] <- linesGrob(x = c(rep(ss$slices[counter], 2)),
                                        y = c(0,sliceDims[2]), # TODO: not sure why this goes beyond the image extent
                                        default.units = "native",
-                                       vp=indVP, gp=gpar(col="green"))
+                                       vp=indVP, gp=gpar(col=lineColour))
       #message(ss$slices[counter])
       counter <- counter+1
     }
   }
-  ss[["sliceIndicator"]] <- gTree(vp=overVP, children=do.call(gList, c(indSlice, lineList)))
+  ss[["sliceIndicator"]] <- gTree(vp=overVP, children=do.call(gList, c(bgGrob, lineList)))
   putSS(ssm, ss)
   return(ssm)
 }
