@@ -4,7 +4,7 @@ author: "Jason Lerch"
 date: "`r Sys.Date()`"
 ---
 
-Load the required data from a file; for the moment, this contains two 3D volumes; _anatVol_ and _stats_ containing the anatomy to use in the background and the output of some statistical computations.
+Load the required data from a file; for the moment, this contains two 3D volumes; _anatVol_ and _stats_ containing the anatomy to use in the background and the output of some statistical computations. (Note for RMINC users: in these examples _anatVol_ and _stats_ would be the output of _mincArray_)
 
 ```{r}
 load("sliceData.RData")
@@ -234,7 +234,7 @@ sliceSeries(nrow=5, begin=150, end=250) %>%
   overlay(stats, 2, 6, symmetric = T, alpha=0.9) %>%
   addtitle("alpha=0.9") %>%  
   legend("t-statistics") %>%
-  contourSliceIndicator(anatVol, 1, 145, c(700, 1400)) %>%
+  contourSliceIndicator(anatVol, c(700, 1400)) %>%
   draw()
 ```
 
@@ -252,6 +252,36 @@ sliceSeries(nrow=5, begin=150, end=250) %>%
   overlay(stats, 2, 6, symmetric = T, alpha=0.9) %>%
   addtitle("alpha=0.9") %>%  
   legend("t-statistics") %>%
-  anatomySliceIndicator(anatVol, 1, 145, 700, 1400) %>%
+  anatomySliceIndicator(anatVol, 700, 1400) %>%
   draw()
 ```
+
+Let's see some possible permutations of slice dimensions and sliceIndicator dimensions
+
+```{r, fig.width=4}
+sliceSeries(nrow=5, begin=150, end=250) %>%
+  anatomy(anatVol, low=700, high=1400) %>%
+  legend("t-statistics") %>%
+  contourSliceIndicator(anatVol,c(700, 1400)) %>%
+  draw()
+
+sliceSeries(nrow=5, begin=150, end=250, dimension = 1) %>%
+  anatomy(anatVol, low=700, high=1400) %>%
+  legend("t-statistics") %>%
+  contourSliceIndicator(anatVol, c(700, 1400)) %>%
+  draw()
+
+sliceSeries(nrow=5, begin=50, end=150, dimension = 3) %>%
+  anatomy(anatVol, low=700, high=1400) %>%
+  legend("t-statistics") %>%
+  contourSliceIndicator(anatVol, c(700, 1400)) %>%
+  draw()
+
+sliceSeries(nrow=5, begin=50, end=150, dimension = 3) %>%
+  anatomy(anatVol, low=700, high=1400) %>%
+  legend("t-statistics") %>%
+  contourSliceIndicator(anatVol, c(700, 1400), dimension = 2) %>%
+  draw()
+
+```
+

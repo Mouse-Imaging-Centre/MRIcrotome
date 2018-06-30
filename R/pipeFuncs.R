@@ -5,20 +5,32 @@ initMetaSliceSeries <- function() {
   return(ssm)
 }
 
-#' Title
+
+#' Initialize a slice series
 #'
-#' @param ssm
-#' @param slices
-#' @param nrow
-#' @param ncol
-#' @param dimension
-#' @param begin
-#' @param end
+#' Starts a new slices series, sets dimensions, slices to use, and rows and
+#' columns.
 #'
-#' @return
+#' @param ssm Provided as part of an ongoing pipe, not usually specified by user
+#' @param slices A vector of integers representing which slices to use. Can be
+#'   NULL, in which case nrow and ncol together with begin and end are used.
+#' @param nrow Rows in the slice series. Set to 1 if NULL and ncol specified.
+#' @param ncol Columns in the slice series. Set to 1 if NULL and nrow specified.
+#' @param dimension Dimension as integer (1, 2, or 3) for slice series.
+#' @param begin First slice. Can be NULL if slices explicitly specified.
+#' @param end Last slice. Can be NULL if slices explicitly specified.
+#'
+#' @return Returns the slices series info for passing along the pipe.
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' sliceSeries(nrow = 1, begin=200, end=300) %>%
+#'   anatomy(anatVol, low=700, high=1400) %>%
+#'   overlay(stats, low=2, high=6, symmetric = T) %>%
+#'   legend("t-statistics") %>%
+#'   draw()
+#' }
 sliceSeries <- function(ssm=NULL,
                         slices=NULL,
                         nrow=NULL,
@@ -103,20 +115,34 @@ makeSlices <- function(ss, volume) {
   return(ss)
 }
 
-#' Title
+
+#' Add anatomy slices
 #'
-#' @param ssm
-#' @param volume
-#' @param low
-#' @param high
-#' @param col
-#' @param name
+#' Adds the anatomy slices, or anything that can serve as an underlay.
 #'
-#' @return
+#' @param ssm The slice series info, usually passed along the pipe and specified
+#'   by the user
+#' @param volume 3D matrix representing the volume from which to obtain slices.
+#'   Can be either numbers or hexadecimal colours
+#' @param low Lower end of colour scale. Can be NULL if volume is a matrix of hexadecimals.
+#' @param high Upper end of colour scale. Can be NULL if volume is a matrix of hexadecimals.
+#' @param col The colour scale. Defaults to gray.
+#' @param alpha Value between 0 and 1, 0 being full transparent and 1 fully opaque.
+#' @param name Optional name.
+#'
+#' @return The slices series for continuation down the pipe.
 #' @export
 #'
 #' @examples
-anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL, col=gray.colors(255, start=0), alpha=NULL, name="anatomy") {
+#' \dontrun{
+#' sliceSeries(nrow = 1, begin=200, end=300) %>%
+#'   anatomy(anatVol, low=700, high=1400) %>%
+#'   overlay(stats, low=2, high=6, symmetric = T) %>%
+#'   legend("t-statistics") %>%
+#'   draw()
+#' }
+anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL,
+                    col=gray.colors(255, start=0), alpha=NULL, name="anatomy") {
   # if there is no volume specified, then reuse the previous sliceSeries' anatomy
   if (is.null(volume)) {
     if (ssm$seriesCounter == 1) stop("A volume must be specified the first time anatomy is used")
@@ -136,23 +162,39 @@ anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL, col=gray.colors(255, 
   }
 }
 
-#' Title
+
+#' Add overlay slices
 #'
-#' @param ssm
-#' @param volume
-#' @param low
-#' @param high
-#' @param col
-#' @param symmetric
-#' @param rCol
-#' @param underTransparent
-#' @param name
-#' @param box
+#' Adds overlay slices; usually used for statistics, but can be anything.
+#' Differs from anatomy in that the background is transparent.
 #'
-#' @return
+#' @param ssm The slice series info, usually passed along the pipe and specified
+#'   by the user
+#' @param volume 3D matrix representing the volume from which to obtain slices.
+#'   Can be either numbers or hexadecimal colours
+#' @param low Lower end of colour scale. Can be NULL if volume is a matrix of
+#'   hexadecimals. If symmetric=TRUE, then treat this as an absolute value (i.e.
+#'   2 would be >2 and < -2)
+#' @param high Upper end of colour scale.
+#' @param col The colour scale. See defaultCol for default.
+#' @param symmetric Whether the colour scale is symmetric.
+#' @param rCol The reverse colour scale. Used if symmetric=TRUE. See defaultRCol
+#'   for default.
+#' @param alpha Value between 0 and 1, 0 being full transparent and 1 fully opaque.
+#' @param underTransparent Whether to make the under colour transparent. Defaults to TRUE.
+#' @param name Optional name.
+#'
+#' @return The slices series for continuation down the pipe.
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' sliceSeries(nrow = 1, begin=200, end=300) %>%
+#'   anatomy(anatVol, low=700, high=1400) %>%
+#'   overlay(stats, low=2, high=6, symmetric = T) %>%
+#'   legend("t-statistics") %>%
+#'   draw()
+#' }
 overlay <- function(ssm, volume, low=NULL, high=NULL, col=defaultCol(),
                     symmetric=FALSE, rCol=defaultRCol(), alpha=NULL,
                     underTransparent = TRUE, name=NULL, box=FALSE) {
@@ -163,15 +205,27 @@ overlay <- function(ssm, volume, low=NULL, high=NULL, col=defaultCol(),
 }
 
 
-#' Title
+#' Add a title to a slice series
 #'
-#' @param ssm
-#' @param title
+#' @param ssm The slice series info, usually passed along the pipe and specified
+#'   by the user
+#' @param title The text that will be used for the title.
 #'
-#' @return
+#' @return The slices series for continuation down the pipe.
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' sliceSeries(nrow = 8, begin=100, end=350) %>%
+#'   anatomy(anatVol, low=700, high=1400) %>%
+#'   addtitle("Anatomy") %>%
+#'   sliceSeries() %>%
+#'   anatomy() %>%
+#'   overlay(stats, low=2, high=6, symmetric = T) %>%
+#'   addtitle("Stats") %>%
+#'   legend("t-statistics") %>%
+#'   draw()
+#' }
 addtitle <- function(ssm, title) {
   ss <- getSS(ssm)
   ss$title <- title
@@ -179,15 +233,31 @@ addtitle <- function(ssm, title) {
   return(ssm)
 }
 
-#' Title
+#' Add a legend
 #'
-#' @param ssm
-#' @param description
+#' Adds a legend based on the current slice series. Colour bars, contours, etc.,
+#' are taken from the immediately preceding element.
 #'
-#' @return
+#' @param ssm The slice series info, usually passed along the pipe and specified
+#'   by the user
+#' @param description The text that will be used to describe the legend. Can be
+#'   NULL, in which case the colour bar is shown without a description.
+#'
+#' @return The slices series for continuation down the pipe.
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' sliceSeries(nrow = 8, begin=100, end=350) %>%
+#'   anatomy(anatVol, low=700, high=1400) %>%
+#'   addtitle("Anatomy") %>%
+#'   sliceSeries() %>%
+#'   anatomy() %>%
+#'   overlay(stats, low=2, high=6, symmetric = T) %>%
+#'   addtitle("Stats") %>%
+#'   legend("t-statistics") %>%
+#'   draw()
+#' }
 legend <- function(ssm, description=NULL) {
   ss <- getSS(ssm)
   ss$legendOrder <- c(ss$legendOrder, ss$order[[length(ss$order)]])
@@ -225,20 +295,39 @@ slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent 
   return(ssm)
 }
 
-#' Title
+
+#' Add contours to a slice series
 #'
-#' @param ssm
-#' @param volume
-#' @param levels
-#' @param col
-#' @param lty
-#' @param lwd
-#' @param name
+#' Adds contours to every slice in the series, with control over the contour
+#' levels and attributes.
 #'
-#' @return
+#' @param ssm The slice series info, usually passed along the pipe and specified
+#'   by the user
+#' @param volume 3D matrix representing the volume from which to obtain contours
+#' @param levels A vector of levels at which to draw the contours.
+#' @param col The colour for the contours. Can be a single value, in which case
+#'   all levels will use the same colour, or a vector if different colours for
+#'   different levels are desired. Default is red.
+#' @param lty The line type for the contours. Can be a single value, in which case
+#'   all levels will use the same line type, or a vector if different line types for
+#'   different levels are desired. Default is 1.
+#' @param lwd The line width for the contours. Can be a single value, in which case
+#'   all levels will use the same line width, or a vector if different line widths for
+#'   different levels are desired. Default is 1.
+#' @param name An optional name.
+#'
+#' @return The slices series for continuation down the pipe.
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' sliceSeries(nrow = 1, begin=200, end=300) %>%
+#'   anatomy(anatVol, low=700, high=1400) %>%
+#'   overlay(stats, low=2, high=6, symmetric = T) %>%
+#'   legend("t-statistics") %>%
+#'   contours(abs(stats), levels=c(3,5), lwd=2, lty=c(3,1), col="green") %>%
+#'   draw()
+#' }
 contours <- function(ssm, volume, levels, col="red", lty=1, lwd=1, name="contours") {
   ss <- getSS(ssm)
   ss <- makeSlices(ss, volume)
@@ -264,42 +353,87 @@ contours <- function(ssm, volume, levels, col="red", lty=1, lwd=1, name="contour
   return(ssm)
 }
 
-#' Title
+
+#' Add a slice indicator
 #'
-#' @param ssm
-#' @param volume
-#' @param dimension
-#' @param slice
-#' @param low
-#' @param high
-#' @param col
+#' Adds an indicator of the slices used in the slice series, displayed on top of
+#' an anatomy slice.
+#'
+#' @param ssm The slice series info, usually passed along the pipe and specified
+#'   by the user
+#' @param volume 3D matrix representing the volume from which to draw the
+#'   background slice.
+#' @param low Low end of colour for background slice.
+#' @param high High end of colour for background slice.
+#' @param dimension Dimension to use for background slice. Will pick sensible
+#'   default if NULL.
+#' @param slice Slice number to use for background slice. Will pick sensible
+#'   default if NULL.
+#' @param col Colour of the background slice. Defaults to gray.
+#' @param lineColour The colour of the slice indicator lines. Defaults to green.
 #'
 #' @return
 #' @export
 #'
 #' @examples
-anatomySliceIndicator <- function(ssm, volume, dimension, slice, low, high, col=gray.colors(255, start=0), lineColour="green") {
+#' \dontrun{
+#' sliceSeries(nrow=5, begin=150, end=250) %>%
+#'   anatomy(anatVol, low=700, high=1400) %>%
+#'   overlay(stats, 2, 6, symmetric = T, alpha=0.1) %>%
+#'   legend("t-statistics") %>%
+#'   anatomySliceIndicator(anatVol, 700, 1400) %>%
+#'   draw()
+#' }
+anatomySliceIndicator <- function(ssm, volume, low, high, dimension=NULL,
+                                  slice=NULL, col=gray.colors(255, start=0),
+                                  lineColour="green") {
+  defDS <- sliceIndicatorDefaultDimensionAndSlice(ssm, volume)
+  if (is.null(dimension)) dimension <- defDS[[1]]
+  if (is.null(slice)) slice <- defDS[[2]]
+
   indVP <- setupSliceIndicatorVP(volume, dimension)
   indSlice <- sliceImage(volume, dimension,slice, low, high, col=col, vp=indVP)
   return(sliceIndicator(ssm, volume, dimension, indSlice, indVP))
 }
 
-#' Title
+
+#' Add a slice indicator
 #'
-#' @param ssm
-#' @param volume
-#' @param dimension
-#' @param slice
-#' @param levels
-#' @param col
-#' @param lty
-#' @param lwd
+#' Adds an indicator of the slices used in the slice series, displayed on top of
+#' one or more contours.
+#'
+#' @param ssm The slice series info, usually passed along the pipe and specified
+#'   by the user
+#' @param volume 3D matrix representing the volume from which to draw the
+#'   contours.
+#' @param levels Levels at which to draw contours - a single number or a vector.
+#' @param dimension Dimension to use for contours. Will pick sensible
+#'   default if NULL.
+#' @param slice Slice number to use for contours. Will pick sensible
+#'   default if NULL.
+#' @param col The colour(s) for the contour(s). Defaults to red.
+#' @param lty The line type(s) for the contour(s). Defaults to 1.
+#' @param lwd The line width(s) for the contour(s). Defaults to 1.
+#' @param lineColour The colour for the slice indicator lines. Defaults to black.
 #'
 #' @return
 #' @export
 #'
 #' @examples
-contourSliceIndicator <- function(ssm, volume, dimension, slice, levels, col="red", lty=1, lwd=1, lineColour="black") {
+#' \dontrun{
+#' sliceSeries(nrow=5, begin=150, end=250) %>%
+#'   anatomy(anatVol, low=700, high=1400) %>%
+#'   overlay(stats, 2, 6, symmetric = T, alpha=0.1) %>%
+#'   legend("t-statistics") %>%
+#'   contourSliceIndicator(anatVol, c(700, 1400)) %>%
+#'   draw()
+#' }
+contourSliceIndicator <- function(ssm, volume, levels, dimension=NULL, slice=NULL, col="red", lty=1, lwd=1, lineColour="black") {
+  defDS <- sliceIndicatorDefaultDimensionAndSlice(ssm, volume)
+  if (is.null(dimension)) dimension <- defDS[[1]]
+  if (is.null(slice)) slice <- defDS[[2]]
+
+
   indVP <- setupSliceIndicatorVP(volume, dimension)
   indContour <- sliceContours(volume, dimension,levels = levels, col=col, lty=lty, lwd=lwd,
                               slice=slice, vp=indVP)
@@ -315,8 +449,25 @@ setupSliceIndicatorVP <- function(volume, dimension) {
   return(indVP)
 }
 
+sliceIndicatorDefaultDimensionAndSlice <- function(ssm, volume) {
+  ss <- getSS(ssm)
+  if (ss$dimension %in% c(2,3)) {
+    d <- 1
+  } else {
+    d <- 2
+  }
+
+  dims <- dim(volume)
+  s <- ceiling(dims[d]/2)
+  return(list(d,s))
+
+}
+
 sliceIndicator <- function(ssm, volume, dimension, bgGrob, indVP, lineColour="green") {
   ss <- getSS(ssm)
+  if (dimension == ss$dimension) {
+    stop("sliceIndicator dimension cannot be equal to sliceSeries dimension")
+  }
   sliceDims <- dim(volume)[-dimension]
   overVP <- viewport(layout = grid.layout(1, 1, widths = sliceDims[1],
                                           heights = sliceDims[2],
@@ -326,8 +477,16 @@ sliceIndicator <- function(ssm, volume, dimension, bgGrob, indVP, lineColour="gr
   counter <- 1
   for (i in 1:ss$nrow) {
     for (j in 1:ss$ncol) {
-      lineList[[counter]] <- linesGrob(x = c(rep(ss$slices[counter], 2)),
-                                       y = c(0,sliceDims[2]), # TODO: not sure why this goes beyond the image extent
+      if ( (ss$dimension == 2 & dimension == 1) |
+           (ss$dimension == 1) ) {
+        xd <- c(rep(ss$slices[counter], 2))
+        yd <- c(0,sliceDims[2])
+      } else {
+        xd <- c(0, sliceDims[1])
+        yd <- c(rep(ss$slices[counter], 2))
+      }
+      lineList[[counter]] <- linesGrob(x = xd,
+                                       y = yd,
                                        default.units = "native",
                                        vp=indVP, gp=gpar(col=lineColour))
       #message(ss$slices[counter])
@@ -430,6 +589,26 @@ grobifySliceSeries <- function(ss) {
   #}
 }
 
+#' Turn the slice series into grobs.
+#'
+#' Takes the slice series, creates grobs where necessary, and returns a gTree.
+#' Can then be incorporated into other grid functions.
+#'
+#' @param ssm The slice series
+#' @param layout Whether to lay out by column (the default) or by row.
+#'
+#' @return Retunrs a gTree
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' sliceSeriesGridTree <- sliceSeries(nrow=5, begin=150, end=250) %>%
+#'   anatomy(anatVol, low=700, high=1400) %>%
+#'   overlay(stats, 2, 6, symmetric = T, alpha=0.1) %>%
+#'   legend("t-statistics") %>%
+#'   anatomySliceIndicator(anatVol, 700, 1400) %>%
+#'   grobify()
+#' }
 grobify <- function(ssm, layout="column") {
   if (layout=="column") grobifyByColumn(ssm)
   else grobifyByRow(ssm)
