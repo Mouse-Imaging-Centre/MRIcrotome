@@ -609,12 +609,12 @@ grobifySliceSeries <- function(ss) {
 #'   anatomySliceIndicator(anatVol, 700, 1400) %>%
 #'   grobify()
 #' }
-grobify <- function(ssm, layout="column") {
+grobify <- function(ssm, layout="column", titlePars = list(), bgCol = NULL) {
   if (layout=="column") grobifyByColumn(ssm)
   else grobifyByRow(ssm)
 }
 
-grobifyByRow <- function(ssm) {
+grobifyByRow <- function(ssm, titlePars = list(), bgCol = NULL) {
   nseries <- length(ssm$ssl)
   haveTitles <- any(sapply(ssm$ssl, function(x) length(x$title))>0)
   haveLegends <- any(sapply(ssm$ssl, function(x) length(x$legendOrder))>0)
@@ -638,7 +638,7 @@ grobifyByRow <- function(ssm) {
     if (length(ssm$ssl[[i]]$title)>0) {
       gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.row = i,
                                               layout.pos.col = 1),
-                                  children=gList(textGrob(ssm$ssl[[i]]$title, rot=90)))
+                                  children=gList(textGrob(ssm$ssl[[i]]$title, rot=90, gp = titlePars)))
     }
     if (length(ssm$ssl[[i]]$legendOrder)>0) {
       gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.col = 3, layout.pos.row = i),
@@ -646,14 +646,16 @@ grobifyByRow <- function(ssm) {
     }
   }
 
+  if(!is.null(bgCol))
+      gs <- c(list(rectGrob(gp = gpar(col = NA, fill = bgCol))), gs)
+
   vA <- viewport(layout = grid.layout(nrow, ncol,
                                       widths = do.call(unit.c, widths)))
 
   return(gTree(children=do.call(gList, gs), vp=vA))
-
 }
 
-grobifyByColumn <- function(ssm) {
+grobifyByColumn <- function(ssm, titlePars = list(), bgCol = NULL) {
   nseries <- length(ssm$ssl)
 
   gs <- list()
@@ -675,7 +677,7 @@ grobifyByColumn <- function(ssm) {
     # add a title as a textGrob if title is present
     if (length(ssm$ssl[[i]]$title) > 0) {
       gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.col = j, layout.pos.row = 1),
-                                  children=gList(textGrob(ssm$ssl[[i]]$title)))
+                                  children=gList(textGrob(ssm$ssl[[i]]$title, gp = titlePars)))
     }
     # add the slices
     gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.col = j, layout.pos.row = row),
@@ -690,6 +692,10 @@ grobifyByColumn <- function(ssm) {
       j <- j+1
     }
   }
+
+  if(!is.null(bgCol))
+      gs <- c(list(rectGrob(gp = gpar(col = NA, fill = bgCol))), gs)
+  
   # create the viewport and assemble the list of grobs
   vA <- viewport(layout = grid.layout(row, j-1,
                                       widths = do.call(unit.c, widths),
