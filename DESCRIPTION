@@ -8,7 +8,11 @@ Description: Functions to create publication-ready figures from 3D volumes.
 License: BSD_3_clause
 Encoding: UTF-8
 LazyData: true
+Imports: dplyr,
+         purrr,
+         grid,
+         RMINC
 Suggests: knitr,
-    rmarkdown
+          rmarkdown
 VignetteBuilder: knitr
 RoxygenNote: 6.1.1
