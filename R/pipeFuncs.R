@@ -372,7 +372,7 @@ contours <- function(ssm, volume, levels, col="red", lty=1, lwd=1, name="contour
 #' @param col Colour of the background slice. Defaults to gray.
 #' @param lineColour The colour of the slice indicator lines. Defaults to green.
 #'
-#' @return
+#' @return The ssm object augmented with a sliceIndicator
 #' @export
 #'
 #' @examples
@@ -416,7 +416,7 @@ anatomySliceIndicator <- function(ssm, volume, low, high, dimension=NULL,
 #' @param lwd The line width(s) for the contour(s). Defaults to 1.
 #' @param lineColour The colour for the slice indicator lines. Defaults to black.
 #'
-#' @return
+#' @return The ssm augmented with a contour slice indication
 #' @export
 #'
 #' @examples
@@ -706,13 +706,12 @@ grobifyByColumn <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol 
 
 #' Title
 #'
-#' @param ssm
-#' @param layout
+#' @param ssm The slice series info, usually passed along the pipe and specified
+#'   by the user
+#' @param layout either "column" or "row" for how to layout the figure
 #'
-#' @return
+#' @return invisible NULL
 #' @export
-#'
-#' @examples
 draw <- function(ssm, layout="column") {
   grid.newpage()
   l <- grobify(ssm, layout=layout)

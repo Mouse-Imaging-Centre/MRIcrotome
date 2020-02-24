@@ -7,7 +7,13 @@
 draw(ssm, layout = "column")
 }
 \arguments{
-\item{layout}{}
+\item{ssm}{The slice series info, usually passed along the pipe and specified
+by the user}
+
+\item{layout}{either "column" or "row" for how to layout the figure}
+}
+\value{
+invisible NULL
 }
 \description{
 Title

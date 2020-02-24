@@ -5,7 +5,8 @@
 \title{Add a slice indicator}
 \usage{
 anatomySliceIndicator(ssm, volume, low, high, dimension = NULL,
-  slice = NULL, col = gray.colors(255, start = 0), lineColour = "green")
+  slice = NULL, col = gray.colors(255, start = 0),
+  lineColour = "green")
 }
 \arguments{
 \item{ssm}{The slice series info, usually passed along the pipe and specified
@@ -27,6 +28,9 @@ default if NULL.}
 \item{col}{Colour of the background slice. Defaults to gray.}
 
 \item{lineColour}{The colour of the slice indicator lines. Defaults to green.}
+}
+\value{
+The ssm object augmented with a sliceIndicator
 }
 \description{
 Adds an indicator of the slices used in the slice series, displayed on top of

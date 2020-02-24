@@ -4,8 +4,9 @@
 \alias{contourSliceIndicator}
 \title{Add a slice indicator}
 \usage{
-contourSliceIndicator(ssm, volume, levels, dimension = NULL, slice = NULL,
-  col = "red", lty = 1, lwd = 1, lineColour = "black")
+contourSliceIndicator(ssm, volume, levels, dimension = NULL,
+  slice = NULL, col = "red", lty = 1, lwd = 1,
+  lineColour = "black")
 }
 \arguments{
 \item{ssm}{The slice series info, usually passed along the pipe and specified
@@ -29,6 +30,9 @@ default if NULL.}
 \item{lwd}{The line width(s) for the contour(s). Defaults to 1.}
 
 \item{lineColour}{The colour for the slice indicator lines. Defaults to black.}
+}
+\value{
+The ssm augmented with a contour slice indication
 }
 \description{
 Adds an indicator of the slices used in the slice series, displayed on top of
