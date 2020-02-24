@@ -596,8 +596,14 @@ grobifySliceSeries <- function(ss) {
 #'
 #' @param ssm The slice series
 #' @param layout Whether to lay out by column (the default) or by row.
-#'
-#' @return Retunrs a gTree
+#' @param titlePars A `gpar` list configuring text grobs when generating titles.
+#' useful for setting e.g. `fontsize` and `col`
+#' @param legendPars A `gpar` list configuring text grobs when generating legends
+#' useful for setting e.g. `fontsize` and `col`
+#' @param bgCol Either NULL or a string indicating what colour the figure background
+#' should be.
+#' 
+#' @return A gTree object with the figure, to be drawn with [grid.draw]
 #' @export
 #'
 #' @examples

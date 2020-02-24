@@ -11,9 +11,18 @@ grobify(ssm, layout = "column", titlePars = gpar(),
 \item{ssm}{The slice series}
 
 \item{layout}{Whether to lay out by column (the default) or by row.}
+
+\item{titlePars}{A \code{gpar} list configuring text grobs when generating titles.
+useful for setting e.g. \code{fontsize} and \code{col}}
+
+\item{legendPars}{A \code{gpar} list configuring text grobs when generating legends
+useful for setting e.g. \code{fontsize} and \code{col}}
+
+\item{bgCol}{Either NULL or a string indicating what colour the figure background
+should be.}
 }
 \value{
-Retunrs a gTree
+A gTree object with the figure, to be drawn with \link{grid.draw}
 }
 \description{
 Takes the slice series, creates grobs where necessary, and returns a gTree.
