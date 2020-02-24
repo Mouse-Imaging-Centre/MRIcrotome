@@ -498,7 +498,7 @@ sliceIndicator <- function(ssm, volume, dimension, bgGrob, indVP, lineColour="gr
   return(ssm)
 }
 
-assembleLegends <- function(ss) {
+assembleLegends <- function(ss, gp = gpar()) {
 
   # some weirdness for the layout; I want alternating legends and small spacers, so that's
   # what these next few lines do.
@@ -521,10 +521,10 @@ assembleLegends <- function(ss) {
       gl <- gList(sliceLegendGrob(li$low, li$high, li$col,
                                   li$rCol, li$symmetric,
                                   colWidth = unit(1, "lines"),
-                                  description = li$description))
+                                  description = li$description, gp = gp))
     else if (li$type == "contour")
       gl <- gList(contourLegendGrob(levels=li$levels, col=li$col, lty=li$lty, lwd=li$lwd,
-                                    description=li$description))
+                                    description=li$description, gp = gp))
 
     legendGrobs[[i]] <- gTree(vp=viewport(layout.pos.row = (i*2)-1, x=1),
                               children=gl)
@@ -609,12 +609,12 @@ grobifySliceSeries <- function(ss) {
 #'   anatomySliceIndicator(anatVol, 700, 1400) %>%
 #'   grobify()
 #' }
-grobify <- function(ssm, layout="column", titlePars = list(), bgCol = NULL) {
-  if (layout=="column") grobifyByColumn(ssm)
-  else grobifyByRow(ssm)
+grobify <- function(ssm, layout="column", titlePars = gpar(), legendPars = gpar(), bgCol = NULL) {
+  if (layout=="column") grobifyByColumn(ssm, titlePars, legendPars, bgCol)
+  else grobifyByRow(ssm, titlePars, legendPars, bgCol)
 }
 
-grobifyByRow <- function(ssm, titlePars = list(), bgCol = NULL) {
+grobifyByRow <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol = NULL) {
   nseries <- length(ssm$ssl)
   haveTitles <- any(sapply(ssm$ssl, function(x) length(x$title))>0)
   haveLegends <- any(sapply(ssm$ssl, function(x) length(x$legendOrder))>0)
@@ -642,7 +642,7 @@ grobifyByRow <- function(ssm, titlePars = list(), bgCol = NULL) {
     }
     if (length(ssm$ssl[[i]]$legendOrder)>0) {
       gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.col = 3, layout.pos.row = i),
-                                  children=gList(assembleLegends(ssm$ssl[[i]])))
+                                  children=gList(assembleLegends(ssm$ssl[[i]], gp = legendPars)))
     }
   }
 
@@ -655,7 +655,7 @@ grobifyByRow <- function(ssm, titlePars = list(), bgCol = NULL) {
   return(gTree(children=do.call(gList, gs), vp=vA))
 }
 
-grobifyByColumn <- function(ssm, titlePars = list(), bgCol = NULL) {
+grobifyByColumn <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol = NULL) {
   nseries <- length(ssm$ssl)
 
   gs <- list()
@@ -687,7 +687,7 @@ grobifyByColumn <- function(ssm, titlePars = list(), bgCol = NULL) {
     # add the legend(s) if present
     if (length(ssm$ssl[[i]]$legendOrder) > 0) {
       gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.col = j, layout.pos.row = row),
-                       children=gList(assembleLegends(ssm$ssl[[i]])))
+                       children=gList(assembleLegends(ssm$ssl[[i]], gp = legendPars)))
       widths[[j]] <- unit(4, "lines")
       j <- j+1
     }

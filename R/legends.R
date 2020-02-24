@@ -3,7 +3,9 @@ contourLegendGrob <- function(levels,
                               lty,
                               lwd,
                               description=NULL,
-                              colWidth=unit(1, "null")) {
+                              colWidth=unit(1, "null"),
+                              gp = gpar()
+                              ) {
 
   nrows <- length(levels)
 
@@ -30,12 +32,13 @@ contourLegendGrob <- function(levels,
               y=unit(c(0.5,0.5), "native"),
               gp=gpar(col=col, lwd=lwd, lty=lty), vp=viewport(layout.pos.col = 1,layout.pos.row = row)) )
   tgrobs <- map2(levels, 1:length(levels), ~ textGrob(.x, vp=viewport(layout.pos.row = .y,
-                                                                     layout.pos.col = 2)))
+                                                                      layout.pos.col = 2),
+                                                      gp = gp))
 
   if (!is.null(description)) {
     tgrobs <- c(tgrobs,
                 list(textGrob(description, y = unit(0.5, "npc"), rot=90, vp=viewport(layout.pos.row=1:length(levels),
-                                                                                layout.pos.col=3))))
+                                                                                layout.pos.col=3), gp = gp)))
   }
 
   gTree(name="contourLegend", children=do.call(gList, c(lgrobs, tgrobs)), vp = vLayout)
