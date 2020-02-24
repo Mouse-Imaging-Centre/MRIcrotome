@@ -626,37 +626,44 @@ grobifyByRow <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol = N
   haveLegends <- any(sapply(ssm$ssl, function(x) length(x$legendOrder))>0)
 
   nrow <- nseries
-  ncol <- nseries+haveTitles+haveLegends
+  ncol <- 1 + haveTitles + haveLegends
 
   gs <- list()
-
-  widths <- list()
-  if (haveTitles) widths[[1]] <- unit(1, "lines")
-  widths[[length(widths)+1]] <- unit(1, "null") #rep(unit(1, "null"), nseries))
-  if (haveLegends) widths[[length(widths)+1]] <- unit(4, "lines")
-
   column <- haveTitles+1
 
   for (i in 1:nseries) {
+    column <- 1
     gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.row = i,
                                             layout.pos.col = column),
                                 children=gList(grobifySliceSeries(ssm$ssl[[i]])))
     if (length(ssm$ssl[[i]]$title)>0) {
+      column <- column + 1
       gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.row = i,
-                                              layout.pos.col = 1),
+                                              layout.pos.col = column),
                                   children=gList(textGrob(ssm$ssl[[i]]$title, rot=90, gp = titlePars)))
     }
     if (length(ssm$ssl[[i]]$legendOrder)>0) {
-      gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.col = 3, layout.pos.row = i),
+      column <- column + 1
+      gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.col = column, layout.pos.row = i),
                                   children=gList(assembleLegends(ssm$ssl[[i]], gp = legendPars)))
     }
   }
 
   if(!is.null(bgCol))
-      gs <- c(list(rectGrob(gp = gpar(col = NA, fill = bgCol))), gs)
+    gs <- c(list(rectGrob(gp = gpar(col = NA, fill = bgCol))), gs)
 
-  vA <- viewport(layout = grid.layout(nrow, ncol,
-                                      widths = do.call(unit.c, widths)))
+  
+  if(haveTitles && haveLegends){
+    widths <- c(0.7, 0.1, 0.2)
+  } else if(haveTitles) {
+    widths <- c(0.9, 0.1)
+  } else if(haveLegends){
+    widths <- c(0.8, 0.2)
+  } else {
+    widths <- 1
+  }
+      
+  vA <- viewport(layout = grid.layout(nrow, ncol, width = widths)) #, widths = do.call(unit.c, widths)))
 
   return(gTree(children=do.call(gList, gs), vp=vA))
 }
