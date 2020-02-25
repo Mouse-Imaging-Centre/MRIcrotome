@@ -1,7 +1,7 @@
 Package: MRIcrotome
 Type: Package
 Title: Visualization Tools for 3D Volumes
-Version: 0.1.0
+Version: 0.2.0
 Author: Jason Lerch
 Maintainer: Jason Lerch <jason.lerch@sickkids.ca>
 Description: Functions to create publication-ready figures from 3D volumes.
