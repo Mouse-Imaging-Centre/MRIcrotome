@@ -72,16 +72,16 @@ combineTwoPolsY <- function(pols1, pols2) {
   return(cpols)
 }
 
-# combines two sets of polygons in X
-combineTwoPolsX <- function(pols1, pols2) {
+combineTwoPolsX <- function(pols2, pols1) {
   pols1Extents <- attr(pols1, "sliceExtents")
-  st_geometry(pols2) <- st_geometry(pols2) + c(pols1Extents[2], 0)
-  cpols <- rbind(pols2, pols1)
+  pols2Extents <- attr(pols2, "sliceExtents")
+  st_geometry(pols1) <- st_geometry(pols1) + c(pols2Extents[2], 0)
+  cpols <- rbind(pols1, pols2)
   attr(cpols, "sliceExtents") <- 
-    ext(pols1Extents[1] + pols1Extents[2], 
-        pols1Extents[2] + pols1Extents[2], 
-        pols1Extents[3],
-        pols1Extents[4])
+    ext(pols2Extents[1] + pols1Extents[2], 
+        pols2Extents[2] + pols1Extents[2], 
+        pols2Extents[3],
+        pols2Extents[4])
   return(cpols)
 }
 
@@ -137,9 +137,52 @@ centreSlicesY <- function(slices, xadditions) {
   map2(slices, xadditions, centreSliceY)
 }
 
+assembleSlicesAndPols <- function(anatSlices, labelPols=NULL, assembleDir="Y", centreSlices=T) {
+  if (assembleDir == "Y") {
+    if (centreSlices) {
+      # centre first
+      xadditions <- getXAdditions(anatSlices)
+      anatSlices <- centreSlicesY(anatSlices, xadditions)
+      if (!is.null(labelPols)) {
+        labelPols <- centrePolsY(labelPols, xadditions)
+      }
+      
+      #fList <- c(fList, function(x) centreSlicesY(x, xadditions))
+    }  
+    # then assemble
+    assembledSlices <- reduce(anatSlices, combineTwoSlicesY)
+    if (!is.null(labelPols)) {
+      assembledPols <- reduce(labelPols, combineTwoPolsY)
+    }
+    
+    #fList <- c(fList, function(x) reduce(x, combineTwoSlicesY))
+  }
+  else if (assembleDir == "X") {
+    if (centreSlices) {
+      #todo
+    }
+    assembledSlices <- reduce(anatSlices, combineTwoSlicesX)
+    if (!is.null(labelPols)) {
+      assembledPols <- reduce(labelPols, combineTwoPolsX)
+    }
+    
+    #fList <- c(fList, function(x) reduce(x, combineTwoSlicesX))
+  }
+  if (!is.null(labelPols)) {
+    return(list(assembledSlices, assembledPols))
+  }
+  else {
+    return(assembledSlices)
+  }
+}
+
 makeSliceListObject <- function(anatomy, labels, labelDefs, sliceList, assembleDir="Y", centreSlices=T ) {
   # a list of functions for adding new volumes to the layout later
   fList <- list()
+  
+  # redefine labels (makes it easier for pruned trees)
+  labelDefs$Set(.id=1:length(labelDefs$Get("name")))
+  labels <- hanatToVolume(labelDefs, labels, ".id")
   
   # shrink volume to label extents
   labelExtents <- labelVolExtents(labels)
@@ -163,39 +206,55 @@ makeSliceListObject <- function(anatomy, labels, labelDefs, sliceList, assembleD
   polBBoxes <- map(labelPols, st_bbox)
   
   ## assemble the slices
-  
-  if (assembleDir == "Y") {
-    if (centreSlices) {
-      # centre first
-      xadditions <- getXAdditions(anatSlices)
-      anatSlices <- centreSlicesY(anatSlices, xadditions)
-      labelPols <- centrePolsY(labelPols, xadditions)
+  if (any(is.na(map_dbl(sliceList, ~ .x[3])))) {
+    assembled <- assembleSlicesAndPols(anatSlices, labelPols, assembleDir, centreSlices)
+    fList <- c(fList, function(x) assembleSlicesAndPols(x, NULL, assembleDir, centreSlices))
+  }
+  else {
+    sliceRows <- map_dbl(sliceList, ~ .x[3])
+    anatSliceList <- split(anatSlices, sliceRows)
+    labelPolList <- split(labelPols, sliceRows)
+    assemblies <- map2(anatSliceList, labelPolList, ~ 
+                         assembleSlicesAndPols(.x, .y, assembleDir="X", centreSlices=F))
+    assembled <- assembleSlicesAndPols(map(assemblies, ~ .x[[1]]), 
+                                       map(assemblies, ~ .x[[2]]), 
+                                       assembleDir = "Y", centreSlices = T)
       
-      fList <- c(fList, function(x) centreSlicesY(x, xadditions))
-    }  
-    # then assemble
-    assembledSlices <- reduce(anatSlices, combineTwoSlicesY)
-    assembledPols <- reduce(labelPols, combineTwoPolsY)
-    
-    fList <- c(fList, function(x) reduce(x, combineTwoSlicesY))
   }
-  else if (assembleDir == "X") {
-    if (centreSlices) {
-      #todo
-    }
-    assembledSlices <- reduce(anatSlices, combineTwoSlicesX)
-    assembledPols <- reduce(labelPols, combineTwoPolsX)
-    
-    fList <- c(fList, function(x) reduce(x, combineTwoSlicesX))
-  }
-  return(
-    list(
-      assembledSlices,
-      assembledPols,
-      modSliceList,
-      fList
+  
+  # incorporate palette and labels from the anatomical tree
+  #labelDefs$Set(.id=1:length(labelDefs$Get("name")))
+  #treeData <- ToDataFrameTable(labelDefs, "name", "label", "color_hex_triplet", "acronym") %>%
+  #  filter(label %in% assembled[[2]]$lyr.1)
+  treeData <- left_join(data.frame(.id=assembled[[2]]$lyr.1),
+                        ToDataFrameTable(labelDefs, "name", "label", ".id", "color_hex_triplet", "acronym"))
+  
+  palette <- setNames(treeData$color_hex_triplet, treeData$name)
+  
+  outdata <- assembled[[2]] %>%
+    mutate(
+      region = treeData$name,
+      hemi="left",
+      side="coronal",
+      label=treeData$name,
+      slice="someslice",
+      acronym=treeData$acronym
     )
-  )
+  
+  class(outdata) <- c("sf", "brain_data", "ggseg_atlas", "tbl_df", "tbl", "data.frame")
+  
+  out <- 
+    list(
+      atlas = "some atlas",
+      type = "subcortical",
+      anatomy=assembled[[1]],
+      data=outdata,
+      sliceMod=modSliceList,
+      functions=fList,
+      palette=palette
+    )
+  class(out) <- "brain_atlas"
+  return(out)
   
 }
 
