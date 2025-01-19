@@ -213,12 +213,15 @@ makeSliceListObject <- function(anatomy, labels, labelDefs, sliceList, assembleD
   else {
     sliceRows <- map_dbl(sliceList, ~ .x[3])
     anatSliceList <- split(anatSlices, sliceRows)
+    fList <- c(fList, function(x) split(x, sliceRows))
     labelPolList <- split(labelPols, sliceRows)
     assemblies <- map2(anatSliceList, labelPolList, ~ 
                          assembleSlicesAndPols(.x, .y, assembleDir="X", centreSlices=F))
     assembled <- assembleSlicesAndPols(map(assemblies, ~ .x[[1]]), 
                                        map(assemblies, ~ .x[[2]]), 
                                        assembleDir = "Y", centreSlices = T)
+    fList <- c(fList, function(x) map(x, ~ assembleSlicesAndPols(.x, NULL, assembleDir="X", centreSlices=F)))
+    fList <- c(fList, function(x) assembleSlicesAndPols(x, NULL, assembleDir = "Y", centreSlices = T))
       
   }
   
