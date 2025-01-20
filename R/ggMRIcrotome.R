@@ -72,14 +72,14 @@ combineTwoPolsY <- function(pols1, pols2) {
   return(cpols)
 }
 
-combineTwoPolsX <- function(pols2, pols1) {
+combineTwoPolsX <- function(pols2, pols1, offset=0) {
   pols1Extents <- attr(pols1, "sliceExtents")
   pols2Extents <- attr(pols2, "sliceExtents")
-  st_geometry(pols1) <- st_geometry(pols1) + c(pols2Extents[2], 0)
+  st_geometry(pols1) <- st_geometry(pols1) + c(pols2Extents[2]+offset, 0)
   cpols <- rbind(pols1, pols2)
   attr(cpols, "sliceExtents") <- 
-    ext(pols2Extents[1] + pols1Extents[2], 
-        pols2Extents[2] + pols1Extents[2], 
+    ext(pols2Extents[1] + pols1Extents[2] + offset, 
+        pols2Extents[2] + pols1Extents[2] + offset, 
         pols2Extents[3],
         pols2Extents[4])
   return(cpols)
@@ -95,9 +95,9 @@ combineTwoSlicesY <- function(slice1, slice2) {
 }
 
 # combines two sets of slices in X
-combineTwoSlicesX <- function(slice1, slice2) {
-  ext(slice2) <- c( xmax(slice1),
-                    xmax(slice1) + xmax(slice2),
+combineTwoSlicesX <- function(slice1, slice2, offset=0) {
+  ext(slice2) <- ext( xmax(slice1) + offset,
+                    (xmax(slice1) + xmax(slice2)) + offset,
                     ymin(slice2),
                     ymax(slice2) )
   merge(slice2, slice1)
@@ -109,6 +109,34 @@ cropSliceToBBox <- function(slice, bbox) {
            bbox[3],
            bbox[2],
            bbox[4]))
+}
+
+shrinkPolsToBBox <- function(pols, bbox, assembleDir) {
+  originalExt <- attr(pols, "sliceExtents")
+  if (assembleDir == "X") {
+    st_geometry(pols) <- st_geometry(pols) - c( bbox[1], 0 )
+    attr(pols, "sliceExtents") <- ext(0, bbox[3]-bbox[1], originalExt[3], originalExt[4])
+  }
+  return(pols)
+}
+shrinkSliceToBBox <- function(slice, bbox, assembleDir) {
+  originalExt <- ext(slice)
+  if (assembleDir == "X") {
+    croppedSlice <- crop(slice, 
+                         ext(bbox[1],
+                             bbox[3],
+                             originalExt[3],
+                             originalExt[4]))
+    ext(croppedSlice) <- ext(0, bbox[3]-bbox[1], originalExt[3], originalExt[4])
+  }
+  else if (assembleDir == "Y") {
+    return(crop(slice,
+                ext(originalExt[1],
+                    originalExt[2],
+                    bbox[2],
+                    bbox[4])))
+  }
+  return(croppedSlice)
 }
 
 centreSliceY <- function(slice, xaddition) {
@@ -206,10 +234,20 @@ makeSliceListObject <- function(anatomy, labels, labelDefs, sliceList, assembleD
   polBBoxes <- map(labelPols, st_bbox)
   
   ## assemble the slices
+  # check if a third entry is provided in the slice List for all slices. If not,
+  # assemble in the specified direction
   if (any(is.na(map_dbl(sliceList, ~ .x[3])))) {
+    anatSlices <- map2(anatSlices, polBBoxes, 
+                       ~ shrinkSliceToBBox(.x, .y, assembleDir))
+    labelPols <- map2(labelPols, polBBoxes,
+                      ~ shrinkPolsToBBox(.x, .y, assembleDir))
+    fList <- c(fList, function(x) map2(x, polBBoxes,
+                                       ~ shrinkSliceToBBox(.x, .y, assembleDir)))
     assembled <- assembleSlicesAndPols(anatSlices, labelPols, assembleDir, centreSlices)
     fList <- c(fList, function(x) assembleSlicesAndPols(x, NULL, assembleDir, centreSlices))
   }
+  # if a third entry is provided in the slice list, then assemble each row in X
+  # and the rows themselves in Y.
   else {
     sliceRows <- map_dbl(sliceList, ~ .x[3])
     anatSliceList <- split(anatSlices, sliceRows)
