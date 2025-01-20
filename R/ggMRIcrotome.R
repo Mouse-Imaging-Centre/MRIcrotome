@@ -165,7 +165,16 @@ centreSlicesY <- function(slices, xadditions) {
   map2(slices, xadditions, centreSliceY)
 }
 
-assembleSlicesAndPols <- function(anatSlices, labelPols=NULL, assembleDir="Y", centreSlices=T) {
+assembleSlicesAndPols <- function(anatSlices, labelPols=NULL, assembleDir="Y", centreSlices=T, polBBoxes) {
+
+  # shrink anatomy to label bounding boxes
+  anatSlices <- map2(anatSlices, polBBoxes, 
+                     ~ shrinkSliceToBBox(.x, .y, assembleDir))
+  if (!is.null(labelPols)) {
+    # shrink polygons to label bounding boxes
+    labelPols <- map2(labelPols, polBBoxes,
+                    ~ shrinkPolsToBBox(.x, .y, assembleDir))
+  }
   if (assembleDir == "Y") {
     if (centreSlices) {
       # centre first
@@ -237,29 +246,31 @@ makeSliceListObject <- function(anatomy, labels, labelDefs, sliceList, assembleD
   # check if a third entry is provided in the slice List for all slices. If not,
   # assemble in the specified direction
   if (any(is.na(map_dbl(sliceList, ~ .x[3])))) {
-    anatSlices <- map2(anatSlices, polBBoxes, 
-                       ~ shrinkSliceToBBox(.x, .y, assembleDir))
-    labelPols <- map2(labelPols, polBBoxes,
-                      ~ shrinkPolsToBBox(.x, .y, assembleDir))
-    fList <- c(fList, function(x) map2(x, polBBoxes,
-                                       ~ shrinkSliceToBBox(.x, .y, assembleDir)))
-    assembled <- assembleSlicesAndPols(anatSlices, labelPols, assembleDir, centreSlices)
-    fList <- c(fList, function(x) assembleSlicesAndPols(x, NULL, assembleDir, centreSlices))
+
+    #fList <- c(fList, function(x) map2(x, polBBoxes,
+    #                                   ~ shrinkSliceToBBox(.x, .y, assembleDir)))
+    assembled <- assembleSlicesAndPols(anatSlices, labelPols, assembleDir, centreSlices, polBBoxes)
+    fList <- c(fList, function(x) assembleSlicesAndPols(x, NULL, assembleDir, centreSlices, polBBoxes))
   }
   # if a third entry is provided in the slice list, then assemble each row in X
   # and the rows themselves in Y.
   else {
     sliceRows <- map_dbl(sliceList, ~ .x[3])
+    
+    polBBoxesList <- split(polBBoxes, sliceRows)
+    
     anatSliceList <- split(anatSlices, sliceRows)
     fList <- c(fList, function(x) split(x, sliceRows))
     labelPolList <- split(labelPols, sliceRows)
-    assemblies <- map2(anatSliceList, labelPolList, ~ 
-                         assembleSlicesAndPols(.x, .y, assembleDir="X", centreSlices=F))
+
+    assemblies <- pmap(list(anatSliceList, labelPolList, polBBoxesList), ~ 
+                         assembleSlicesAndPols(..1, ..2, assembleDir="X", centreSlices=F, ..3))
+    polBBoxes <- map(map(assemblies, ~ .x[[2]]), st_bbox)
     assembled <- assembleSlicesAndPols(map(assemblies, ~ .x[[1]]), 
                                        map(assemblies, ~ .x[[2]]), 
-                                       assembleDir = "Y", centreSlices = T)
-    fList <- c(fList, function(x) map(x, ~ assembleSlicesAndPols(.x, NULL, assembleDir="X", centreSlices=F)))
-    fList <- c(fList, function(x) assembleSlicesAndPols(x, NULL, assembleDir = "Y", centreSlices = T))
+                                       assembleDir = "Y", centreSlices = T, polBBoxes)
+    fList <- c(fList, function(x) map2(x, polBBoxesList, ~ assembleSlicesAndPols(.x, NULL, assembleDir="X", centreSlices=F, .y)))
+    fList <- c(fList, function(x) assembleSlicesAndPols(x, NULL, assembleDir = "Y", centreSlices = T, polBBoxes))
       
   }
   
