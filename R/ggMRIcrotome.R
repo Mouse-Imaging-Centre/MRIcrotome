@@ -62,13 +62,13 @@ sliceToPolygons <- function(sRast, smoothness=1.5) {
 # combines two sets of polygons in Y
 combineTwoPolsY <- function(pols1, pols2, offset=0) {
   pols2Extents <- attr(pols2, "sliceExtents")
-  st_geometry(pols1) <- st_geometry(pols1) + c(0, pols2Extents[4])
+  st_geometry(pols1) <- st_geometry(pols1) + c(0, pols2Extents[4]+offset)
   cpols <- rbind(pols2, pols1)
   attr(cpols, "sliceExtents") <- 
     ext(pols2Extents[1], 
         pols2Extents[2], 
-        pols2Extents[3] + pols2Extents[4],
-        pols2Extents[4] + pols2Extents[4])
+        pols2Extents[3] + pols2Extents[4] + offset,
+        pols2Extents[4] + pols2Extents[4] + offset)
   return(cpols)
 }
 
@@ -89,8 +89,8 @@ combineTwoPolsX <- function(pols2, pols1, offset=0) {
 combineTwoSlicesY <- function(slice1, slice2, offset=0) {
   ext(slice1) <- c( xmin(slice1),
                     xmax(slice1),
-                    ymax(slice2),
-                    ymax(slice1) + ymax(slice2) )
+                    ymax(slice2) + offset,
+                    ymax(slice1) + ymax(slice2) + offset)
   merge(slice2, slice1)
 }
 
@@ -117,6 +117,10 @@ shrinkPolsToBBox <- function(pols, bbox, assembleDir) {
     st_geometry(pols) <- st_geometry(pols) - c( bbox[1], 0 )
     attr(pols, "sliceExtents") <- ext(0, bbox[3]-bbox[1], originalExt[3], originalExt[4])
   }
+  else if (assembleDir == "Y") {
+    st_geometry(pols) <- st_geometry(pols) - c(0, bbox[2])
+    attr(pols, "sliceExtents") <- ext(originalExt[1], originalExt[2], 0, bbox[4]-bbox[2])
+  }
   return(pols)
 }
 shrinkSliceToBBox <- function(slice, bbox, assembleDir) {
@@ -130,11 +134,12 @@ shrinkSliceToBBox <- function(slice, bbox, assembleDir) {
     ext(croppedSlice) <- ext(0, bbox[3]-bbox[1], originalExt[3], originalExt[4])
   }
   else if (assembleDir == "Y") {
-    return(crop(slice,
-                ext(originalExt[1],
-                    originalExt[2],
-                    bbox[2],
-                    bbox[4])))
+    croppedSlice <- crop(slice,
+                         ext(originalExt[1],
+                             originalExt[2],
+                             bbox[2],
+                             bbox[4]))
+    ext(croppedSlice) <- ext(originalExt[1], originalExt[2], 0, bbox[4]-bbox[2])
   }
   return(croppedSlice)
 }
