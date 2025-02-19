@@ -4,8 +4,15 @@
 \alias{anatomy}
 \title{Add anatomy slices}
 \usage{
-anatomy(ssm, volume = NULL, low = NULL, high = NULL,
-  col = gray.colors(255, start = 0), alpha = NULL, name = "anatomy")
+anatomy(
+  ssm,
+  volume = NULL,
+  low = NULL,
+  high = NULL,
+  col = gray.colors(255, start = 0),
+  alpha = NULL,
+  name = "anatomy"
+)
 }
 \arguments{
 \item{ssm}{The slice series info, usually passed along the pipe and specified

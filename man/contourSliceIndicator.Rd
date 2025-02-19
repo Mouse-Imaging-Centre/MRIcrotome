@@ -4,9 +4,17 @@
 \alias{contourSliceIndicator}
 \title{Add a slice indicator}
 \usage{
-contourSliceIndicator(ssm, volume, levels, dimension = NULL,
-  slice = NULL, col = "red", lty = 1, lwd = 1,
-  lineColour = "black")
+contourSliceIndicator(
+  ssm,
+  volume,
+  levels,
+  dimension = NULL,
+  slice = NULL,
+  col = "red",
+  lty = 1,
+  lwd = 1,
+  lineColour = "black"
+)
 }
 \arguments{
 \item{ssm}{The slice series info, usually passed along the pipe and specified

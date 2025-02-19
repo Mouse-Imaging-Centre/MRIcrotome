@@ -4,8 +4,7 @@
 \alias{contours}
 \title{Add contours to a slice series}
 \usage{
-contours(ssm, volume, levels, col = "red", lty = 1, lwd = 1,
-  name = "contours")
+contours(ssm, volume, levels, col = "red", lty = 1, lwd = 1, name = "contours")
 }
 \arguments{
 \item{ssm}{The slice series info, usually passed along the pipe and specified

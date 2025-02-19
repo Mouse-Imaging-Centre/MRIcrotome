@@ -4,9 +4,16 @@
 \alias{anatomySliceIndicator}
 \title{Add a slice indicator}
 \usage{
-anatomySliceIndicator(ssm, volume, low, high, dimension = NULL,
-  slice = NULL, col = gray.colors(255, start = 0),
-  lineColour = "green")
+anatomySliceIndicator(
+  ssm,
+  volume,
+  low,
+  high,
+  dimension = NULL,
+  slice = NULL,
+  col = gray.colors(255, start = 0),
+  lineColour = "green"
+)
 }
 \arguments{
 \item{ssm}{The slice series info, usually passed along the pipe and specified

@@ -4,8 +4,15 @@
 \alias{sliceSeries}
 \title{Initialize a slice series}
 \usage{
-sliceSeries(ssm = NULL, slices = NULL, nrow = NULL, ncol = NULL,
-  dimension = NULL, begin = NULL, end = NULL)
+sliceSeries(
+  ssm = NULL,
+  slices = NULL,
+  nrow = NULL,
+  ncol = NULL,
+  dimension = NULL,
+  begin = NULL,
+  end = NULL
+)
 }
 \arguments{
 \item{ssm}{Provided as part of an ongoing pipe, not usually specified by user}

@@ -3,7 +3,7 @@ Type: Package
 Title: Visualization Tools for 3D Volumes
 Version: 0.2.0
 Author: Jason Lerch
-Maintainer: Jason Lerch <jason.lerch@sickkids.ca>
+Maintainer: Jason Lerch <jason.lerch@ndcn.ox.ac.uk>
 Description: Functions to create publication-ready figures from 3D volumes.
 License: BSD_3_clause
 Encoding: UTF-8
@@ -16,4 +16,4 @@ Suggests: knitr,
           rmarkdown
 VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 6.1.1
+RoxygenNote: 7.2.3

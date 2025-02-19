@@ -54,7 +54,7 @@ getSliceRast <- function(slice, vol, makeZeroNA=FALSE) {
 sliceToPolygons <- function(sRast, smoothness=1.5) {
   p1 <- as.polygons(sRast)
   pols <- st_as_sf(p1)
-  spols <- smooth(pols, method="ksmooth", smoothness=smoothness) # TODO: make choices optional  
+  spols <- smoothr::smooth(pols, method="ksmooth", smoothness=smoothness) # TODO: make choices optional  
   attr(spols, "sliceExtents") <- ext(sRast)
   return(spols)
 }
@@ -91,7 +91,7 @@ combineTwoSlicesY <- function(slice1, slice2, offset=0) {
                     xmax(slice1),
                     ymax(slice2) + offset,
                     ymax(slice1) + ymax(slice2) + offset)
-  merge(slice2, slice1)
+  terra::merge(slice2, slice1)
 }
 
 # combines two sets of slices in X
@@ -100,7 +100,7 @@ combineTwoSlicesX <- function(slice1, slice2, offset=0) {
                     (xmax(slice1) + xmax(slice2)) + offset,
                     ymin(slice2),
                     ymax(slice2) )
-  merge(slice2, slice1)
+  terra::merge(slice2, slice1)
 }
 
 cropSliceToBBox <- function(slice, bbox) {
@@ -227,14 +227,29 @@ assembleSlicesAndPols <- function(anatSlices,
   }
 }
 
-makeSliceListObject <- function(anatomy, 
-                                labels, 
-                                labelDefs, 
-                                sliceList, 
-                                assembleDir="Y", 
-                                centreSlices=T,
-                                shrinkToPols=T,
-                                sliceOffset=0) {
+#' Title
+#'
+#' @param anatomy 
+#' @param labels 
+#' @param labelDefs 
+#' @param sliceList 
+#' @param assembleDir 
+#' @param centreSlices 
+#' @param shrinkToPols 
+#' @param sliceOffset 
+#'
+#' @returns
+#' @export
+#'
+#' @examples
+MRIcrotome <- function(anatomy, 
+                       labels, 
+                       labelDefs, 
+                       sliceList, 
+                       assembleDir="Y", 
+                       centreSlices=T,
+                       shrinkToPols=T,
+                       sliceOffset=0) {
   # a list of functions for adding new volumes to the layout later (i.e. when
   # wanting to add a stats map overlay)
   fList <- list()
@@ -334,7 +349,16 @@ makeSliceListObject <- function(anatomy,
   
 }
 
-applyFuncsSeq <- function(volume, fList) {
+#' Title
+#'
+#' @param volume 
+#' @param fList 
+#'
+#' @returns
+#' @export
+#'
+#' @examples
+MRIcrotomeOverlay <- function(volume, fList) {
   out <- fList[[1]](volume)
   for (i in 2:length(fList)) {
     out <- fList[[i]](out)

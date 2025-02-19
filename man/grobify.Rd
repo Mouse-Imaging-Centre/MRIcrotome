@@ -4,8 +4,13 @@
 \alias{grobify}
 \title{Turn the slice series into grobs.}
 \usage{
-grobify(ssm, layout = "column", titlePars = gpar(),
-  legendPars = gpar(), bgCol = NULL)
+grobify(
+  ssm,
+  layout = "column",
+  titlePars = gpar(),
+  legendPars = gpar(),
+  bgCol = NULL
+)
 }
 \arguments{
 \item{ssm}{The slice series}
