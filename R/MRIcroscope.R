@@ -1,3 +1,11 @@
+#' Title
+#'
+#' @param data 
+#'
+#' @returns
+#' @export
+#'
+#' @examples
 MRIcroscope <- function(data) {
   plot <- ggplot2::ggplot() + 
     ggplot2::coord_sf() +
@@ -7,6 +15,15 @@ MRIcroscope <- function(data) {
   return(plot)
 }
 
+#' Title
+#'
+#' @param plot 
+#' @param data 
+#'
+#' @returns
+#' @export
+#'
+#' @examples
 add_roi_outline <- function(plot, data=NULL) {
   if(is.null(data)) {
     data <- plot$MRIcrotome$data
@@ -15,6 +32,18 @@ add_roi_outline <- function(plot, data=NULL) {
   return(plot)
 }
 
+#' Title
+#'
+#' @param plot 
+#' @param data 
+#' @param low 
+#' @param high 
+#' @param guide 
+#'
+#' @returns
+#' @export
+#'
+#' @examples
 add_anatomy <- function(plot, data=NULL, low=700, high=1400, guide="none") {
   if(is.null(data)) {
     data <- plot$MRIcrotome$anatomy
@@ -31,6 +60,20 @@ add_anatomy <- function(plot, data=NULL, low=700, high=1400, guide="none") {
 
 }
 
+#' Title
+#'
+#' @param plot 
+#' @param column 
+#' @param variable 
+#' @param data 
+#' @param low 
+#' @param high 
+#' @param symmetric 
+#'
+#' @returns
+#' @export
+#'
+#' @examples
 add_roi_overlay <- function(plot, column, variable="var", data=NULL, 
                             low=2, high=5, symmetric=T) {
   if(is.null(data)) {
