@@ -47,3 +47,36 @@ add_roi_overlay <- function(plot, column, variable="var", data=NULL,
   return(plot)
   
 }
+
+
+#' Title
+#'
+#' @param ... 
+#' @param aesthetic 
+#' @param low 
+#' @param high 
+#'
+#' @returns
+#' @export
+#'
+#' @examples
+scale_fill_posneg <- function(name = waiver(), ..., aesthetic="fill", low=NULL, high=NULL) {
+  if (is.null(low))
+    low <- 0
+  if (is.null(high))
+    high <- max(breaks)
+  continuous_scale(aesthetic, name=name, 
+                   palette = scales::pal_gradient_n(c("turquoise1", 
+                                              "blue", 
+                                              "transparent", 
+                                              "transparent", 
+                                              "red", 
+                                              "yellow"),
+                                              values = scales::rescale(c(-high, -low, -low + 0.0001,
+                                                                       low - 0.0001, low, high))),
+                   breaks = c(-high, -low, low, high),
+                   limits=c(-high, high),
+                   oob=scales::squish, 
+                   na.value="transparent",
+                   guide="colourbar", ...)
+}
