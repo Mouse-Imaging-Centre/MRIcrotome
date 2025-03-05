@@ -91,6 +91,27 @@ add_roi_overlay <- function(plot, column, variable="var", data=NULL,
   
 }
 
+#' Title
+#'
+#' @param plot 
+#' @param data 
+#' @param name
+#' @param low 
+#' @param high 
+#' @param symmetric 
+#'
+#' @returns
+#' @export
+#'
+#' @examples
+add_voxel_overlay <- function(plot, data, name="voxels", low=2, high=5, symmetric=T) {
+  # TODO - add some data type checks and possible conversions
+  plot <- plot + 
+  tidyterra::geom_spatraster(data=data) +
+  scale_fill_posneg(name, low=low, high=high)
+  return(plot)
+}
+
 
 #' Title
 #'
