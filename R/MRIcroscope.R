@@ -74,7 +74,7 @@ add_anatomy <- function(plot, data=NULL, low=700, high=1400, guide="none") {
 #' @export
 #'
 #' @examples
-add_roi_overlay <- function(plot, column, variable="var", data=NULL, 
+add_roi_overlay <- function(plot, column, variable="var", name = "roi", data=NULL, 
                             low=2, high=5, symmetric=T) {
   if(is.null(data)) {
     data <- plot$MRIcrotome$data
@@ -86,7 +86,7 @@ add_roi_overlay <- function(plot, column, variable="var", data=NULL,
   }
   plot <- plot + 
     tidyterra::geom_spatvector(data=data, aes(fill={{column}})) + 
-    ggplot2::scale_fill_continuous(variable)
+    scale_fill_posneg(name, low=low, high=high)
   return(plot)
   
 }
@@ -138,6 +138,97 @@ scale_fill_posneg <- function(name = waiver(), ..., aesthetic="fill", low=NULL, 
                                               "yellow"),
                                               values = scales::rescale(c(-high, -low, -low + 0.0001,
                                                                        low - 0.0001, low, high))),
+                   breaks = c(-high, -low, low, high),
+                   limits=c(-high, high),
+                   oob=scales::squish, 
+                   na.value="transparent",
+                   guide="colourbar", ...)
+}
+
+testPalette <- function(colours, values, low, high, lowalpha=0) {
+  pfun <- scales::pal_gradient_n(c("turquoise1", 
+                                   "blue", 
+                                   "transparent", 
+                                   "red", 
+                                   "yellow"),
+                                 values = scales::rescale(c(-high, -0.0001, 0, 0.0001, high)))
+  function(x) {
+    #browser()
+    cols <- pfun(x)
+    ll <- length(cols)
+    
+    # if (ll > length(values)) {
+    #   
+    #   midpoint <- round(ll/2)
+    #   uThreshPoint <- round(((ll-midpoint) * (low/high)) + midpoint)
+    #   lThreshPoint <- round(midpoint - ((ll-midpoint) * (low/high)))
+    #   cols[lThreshPoint:uThreshPoint] <- alpha(cols[lThreshPoint:uThreshPoint], lowalpha)
+    #   cat(ll, lThreshPoint, uThreshPoint, "\n")
+    #   #cols[midpoint:uThreshPoint] <- alpha(cols[midpoint:uThreshPoint], lowalpha)
+    # }
+    
+    if (ll > length(values)) {
+      
+      midpoint <- 0.5
+      uThreshPoint <- (midpoint*(low/high)) + midpoint
+      lThreshPoint <- midpoint - (midpoint*(low/high))
+      cols[x >= lThreshPoint & x <= uThreshPoint] <- alpha(cols[x >= lThreshPoint & x <= uThreshPoint], lowalpha)
+      cat(ll, lThreshPoint, uThreshPoint, "\n")
+      #cols[midpoint:uThreshPoint] <- alpha(cols[midpoint:uThreshPoint], lowalpha)
+    }
+    return(cols)
+  }
+}
+
+testPalette2 <- function(colours, values, low, high) {
+  pfun <- scales::pal_gradient_n(c("turquoise1", 
+                                   "blue", 
+                                   "white", 
+                                   "red", 
+                                   "yellow"),
+                                 values = scales::rescale(c(-high, -0.000001, 0, 0.000001, high)))
+  #pfun <- scales::pal_gradient_n(c("blue", "white", "red"), values=scales::rescale(c(-high, 0, high)))
+  function(x) {
+    #browser()
+    cols <- pfun(x)
+    ll <- length(cols)
+    
+    #if (ll > length(values)) {
+      #browser()
+      midpoint <- 0.5
+      thresh <- midpoint*(low/high)
+      #uThreshPoint <- (midpoint*(low/high)) + midpoint
+      #lThreshPoint <- midpoint - (midpoint*(low/high))
+      #cols[x >= lThreshPoint & x <= uThreshPoint] <- alpha(cols[x >= lThreshPoint & x <= uThreshPoint], lowalpha)
+      #cat(ll, lThreshPoint, uThreshPoint, "\n")
+      alphas <- abs((x - midpoint)/thresh)^2
+      #alphas <- abs((x - midpoint)/thresh)
+      #browser()
+      alphas[alphas>1] <- 1
+      #cols <- alpha(cols, alphas)
+      cols <- colorspace::adjust_transparency(cols, alphas)
+      #browser()
+      #print(data.frame(x, alphas))
+      #cols[midpoint:uThreshPoint] <- alpha(cols[midpoint:uThreshPoint], lowalpha)
+    #}
+    return(cols)
+  }
+}
+
+scale_fill_posneg2 <- function(name = waiver(), ..., aesthetic="fill", low=NULL, high=NULL, threshold=1, lowalpha=0.3) {
+  if (is.null(low))
+    low <- 0
+  if (is.null(high))
+    high <- max(breaks)
+  continuous_scale(aesthetic, name=name, 
+                   palette = testPalette2(c("turquoise1", 
+                                                      "blue", 
+                                                      "white", 
+                                                      "red", 
+                                                      "yellow"),
+                                          values = scales::rescale(c(-high, -0.000001, 0, 0.000001, high)), 
+                                          low, 
+                                          high),
                    breaks = c(-high, -low, low, high),
                    limits=c(-high, high),
                    oob=scales::squish, 

@@ -51,12 +51,15 @@ getSliceRast <- function(slice, vol, makeZeroNA=FALSE) {
 }
 
 # takes a slice of a label volume and creates and smoothes polygons
-sliceToPolygons <- function(sRast, smoothness=1.5) {
+sliceToPolygons <- function(sRast, smooth=T, smoothness=1.5, simplify=F, ...) {
   p1 <- as.polygons(sRast)
   pols <- st_as_sf(p1)
-  spols <- smoothr::smooth(pols, method="ksmooth", smoothness=smoothness) # TODO: make choices optional  
-  attr(spols, "sliceExtents") <- ext(sRast)
-  return(spols)
+  if (smooth == T)
+    pols <- smoothr::smooth(pols, method="ksmooth", smoothness=smoothness)
+  if (simplify == T)
+    pols <- rmapshaper::ms_simplify(pols, ...)
+  attr(pols, "sliceExtents") <- ext(sRast)
+  return(pols)
 }
 
 # combines two sets of polygons in Y
@@ -249,7 +252,11 @@ MRIcrotome <- function(anatomy,
                        assembleDir="Y", 
                        centreSlices=T,
                        shrinkToPols=T,
-                       sliceOffset=0) {
+                       sliceOffset=0,
+                       smooth=T,
+                       smoothness=1.5,
+                       simplify=F,
+                       ...) {
   # a list of functions for adding new volumes to the layout later (i.e. when
   # wanting to add a stats map overlay)
   fList <- list()
@@ -278,10 +285,15 @@ MRIcrotome <- function(anatomy,
   
   # iterate over sliceList to create polygons
   labelSlices <- map(modSliceList, getSliceRast, shrunkLabels, makeZeroNA=T)
-  labelPols <- map(labelSlices, sliceToPolygons)
+  labelPols <- map(labelSlices, 
+                   sliceToPolygons, 
+                   smooth=smooth, 
+                   smoothness=smoothness,
+                   simplify=simplify,
+                   ...)
   
   # get bounding boxes of geometry for further size modifications down the line
-  polBBoxes <- map(labelPols, st_bbox)
+  polBBoxes <- map(labelPols, ~ ceiling(st_bbox(.x)))
   
   ## assemble the slices
   # check if a third entry is provided in the slice List for all slices. If not,
