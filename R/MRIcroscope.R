@@ -215,7 +215,18 @@ testPalette2 <- function(colours, values, low, high) {
   }
 }
 
-scale_fill_posneg2 <- function(name = waiver(), ..., aesthetic="fill", low=NULL, high=NULL, threshold=1, lowalpha=0.3) {
+#' Title
+#'
+#' @param ... 
+#' @param aesthetic 
+#' @param low 
+#' @param high 
+#'
+#' @returns
+#' @export
+#'
+#' @examples
+scale_fill_posneg_alpha <- function(name = waiver(), ..., aesthetic="fill", low=NULL, high=NULL, threshold=1, lowalpha=0.3) {
   if (is.null(low))
     low <- 0
   if (is.null(high))

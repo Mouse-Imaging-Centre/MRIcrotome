@@ -8,6 +8,7 @@ add_roi_overlay(
   plot,
   column,
   variable = "var",
+  name = "roi",
   data = NULL,
   low = 2,
   high = 5,

@@ -2,6 +2,7 @@
 % Please edit documentation in R/MRIcrotome-package.r, R/ggMRIcrotome.R
 \docType{package}
 \name{MRIcrotome}
+\alias{MRIcrotome-package}
 \alias{MRIcrotome}
 \title{MRIcrotome.}
 \usage{
@@ -13,7 +14,11 @@ MRIcrotome(
   assembleDir = "Y",
   centreSlices = T,
   shrinkToPols = T,
-  sliceOffset = 0
+  sliceOffset = 0,
+  smooth = T,
+  smoothness = 1.5,
+  simplify = F,
+  ...
 )
 }
 \arguments{
@@ -32,4 +37,7 @@ MRIcrotome(
 \item{shrinkToPols}{}
 
 \item{sliceOffset}{}
+}
+\description{
+Functions to create publication-ready figures from 3D volumes.
 }
