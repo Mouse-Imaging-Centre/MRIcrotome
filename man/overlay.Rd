@@ -33,6 +33,8 @@ for default.}
 \item{underTransparent}{Whether to make the under colour transparent. Defaults to TRUE.}
 
 \item{name}{Optional name.}
+
+\item{box}{Whether to draw a box around the overlay. Defaults to FALSE.}
 }
 \value{
 The slices series for continuation down the pipe.

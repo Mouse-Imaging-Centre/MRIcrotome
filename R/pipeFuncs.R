@@ -183,6 +183,7 @@ anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL,
 #' @param alpha Value between 0 and 1, 0 being full transparent and 1 fully opaque.
 #' @param underTransparent Whether to make the under colour transparent. Defaults to TRUE.
 #' @param name Optional name.
+#' @param box Whether to draw a box around the overlay. Defaults to FALSE.
 #'
 #' @return The slices series for continuation down the pipe.
 #' @export
@@ -717,7 +718,11 @@ grobifyByColumn <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol 
 
 }
 
-#' Title
+#' Draw a slice series figure
+#'
+#' Renders the slice series to the current graphics device. Opens a new page and
+#' draws the assembled figure including all slice series, overlays, contours,
+#' legends, and titles.
 #'
 #' @param ssm The slice series info, usually passed along the pipe and specified
 #'   by the user
@@ -725,6 +730,15 @@ grobifyByColumn <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol 
 #'
 #' @return invisible NULL
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' sliceSeries(nrow = 1, begin=200, end=300) %>%
+#'   anatomy(anatVol, low=700, high=1400) %>%
+#'   overlay(stats, low=2, high=6, symmetric = T) %>%
+#'   legend("t-statistics") %>%
+#'   draw()
+#' }
 draw <- function(ssm, layout="column") {
   grid.newpage()
   l <- grobify(ssm, layout=layout)

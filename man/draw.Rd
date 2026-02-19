@@ -2,7 +2,7 @@
 % Please edit documentation in R/pipeFuncs.R
 \name{draw}
 \alias{draw}
-\title{Title}
+\title{Draw a slice series figure}
 \usage{
 draw(ssm, layout = "column")
 }
@@ -16,5 +16,16 @@ by the user}
 invisible NULL
 }
 \description{
-Title
+Renders the slice series to the current graphics device. Opens a new page and
+draws the assembled figure including all slice series, overlays, contours,
+legends, and titles.
+}
+\examples{
+\dontrun{
+sliceSeries(nrow = 1, begin=200, end=300) \%>\%
+  anatomy(anatVol, low=700, high=1400) \%>\%
+  overlay(stats, low=2, high=6, symmetric = T) \%>\%
+  legend("t-statistics") \%>\%
+  draw()
+}
 }
