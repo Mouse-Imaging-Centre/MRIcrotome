@@ -12,10 +12,13 @@ Install RMINC first, then install MRIcrotome with `devtools`:
 
 ```r
 # install.packages("devtools")
-devtools::install_github("gdevenyi/MRIcrotome")
+devtools::install_github("Mouse-Imaging-Centre/MRIcrotome")
 ```
 
 ## Usage
+
+For a full tutorial with rendered figures, see the
+[vignette](https://htmlpreview.github.io/?https://github.com/Mouse-Imaging-Centre/MRIcrotome/blob/master/vignettes/figures.html).
 
 MRIcrotome is designed to be used with pipes. A typical workflow starts with
 `sliceSeries()`, adds layers such as `anatomy()`, `overlay()`, or
