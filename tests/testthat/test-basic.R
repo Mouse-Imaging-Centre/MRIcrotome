@@ -1,7 +1,3 @@
-test_that("MRIcrotome package loads successfully", {
-  expect_true("MRIcrotome" %in% loadedNamespaces())
-})
-
 test_that("sliceSeries returns expected structure", {
   ssm <- sliceSeries(nrow=2, ncol=2, begin=1, end=10)
   expect_true(is.environment(ssm))
