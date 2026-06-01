@@ -200,7 +200,10 @@ overlay <- function(ssm, volume, low=NULL, high=NULL, col=defaultCol(),
                     symmetric=FALSE, rCol=defaultRCol(), alpha=NULL,
                     underTransparent = TRUE, name=NULL, box=FALSE) {
 
-  if (is.null(name)) name <- paste0("overlay#", ssm$seriesCounter)
+  if (is.null(name)) {
+    ss <- getSS(ssm)
+    name <- paste0("overlay#", ssm$seriesCounter, "_", length(ss$order) + 1)
+  }
   slice(ssm, volume, low, high, col=col, name=name, underTransparent = underTransparent, symmetric = symmetric,
         rCol=rCol, alpha=alpha, box=box)
 }
