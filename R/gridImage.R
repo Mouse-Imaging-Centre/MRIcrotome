@@ -103,10 +103,31 @@ sliceContours <- function(volume,
 
 
 
+#' Default colour palette for overlays
+#'
+#' Returns the default colour palette, configurable via the
+#' \code{MRIcrotomeCol} option. Defaults to a red-to-yellow ramp with 255
+#' colours.
+#'
+#' @return A character vector of hex colour strings.
+#' @export
+#' @examples
+#' defaultCol()
 defaultCol <- function() {
   getOption("MRIcrotomeCol", colorRampPalette(c("red", "yellow"))(255))
 }
 
+#' Default reverse colour palette for overlays
+#'
+#' Returns the default reverse (negative) colour palette, configurable via
+#' the \code{MRIcrotomeRcol} option. Used when \code{symmetric=TRUE} in
+#' \code{\link{overlay}}. Defaults to a blue-to-turquoise ramp with 255
+#' colours.
+#'
+#' @return A character vector of hex colour strings.
+#' @export
+#' @examples
+#' defaultRCol()
 defaultRCol <- function() {
   getOption("MRIcrotomeRcol", colorRampPalette(c("blue", "turquoise1"))(255))
 }
