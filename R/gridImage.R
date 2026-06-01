@@ -113,9 +113,8 @@ defaultRCol <- function() {
 
 getRangeFromHistogram <- function (volume, low = NULL, high = NULL) {
   if (is.character(volume)) return(c(NA, NA))
-  if(is.null(low) || is.null(high)) hist_midpoints <- hist(volume, plot=F)$mids
-  if (is.null(low)) { low <- hist_midpoints[5]}
-  if (is.null(high)) { high <- rev(hist_midpoints)[5]}
+  if (is.null(low)) low <- quantile(volume, 0.02, na.rm = TRUE)
+  if (is.null(high)) high <- quantile(volume, 0.98, na.rm = TRUE)
 
   return(c(low, high))
 }
