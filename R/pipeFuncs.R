@@ -741,6 +741,8 @@ grobifyByColumn <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol 
 #' }
 draw <- function(ssm, layout="column") {
   grid.newpage()
+  pushViewport(viewport(width = 0.95, height = 0.95))
   l <- grobify(ssm, layout=layout)
   grid.draw(l)
+  popViewport()
 }

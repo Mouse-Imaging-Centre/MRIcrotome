@@ -66,7 +66,7 @@ sliceLegendGrob <- function(low, high,
   strings <- format(strings, drop0trailing = T)
 
   maxLength <- max(c(convertWidth(stringWidth(strings), "lines")))
-  maxLength <- max(1, maxLength) # no smaller than 1 line
+  maxLength <- max(1, maxLength) + 0.3
 
   # construct the viewports; with either have 2 or 3 elements depending on
   # whether there is an outer description
