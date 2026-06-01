@@ -5,6 +5,13 @@ initMetaSliceSeries <- function() {
   return(ssm)
 }
 
+validateVolume <- function(volume) {
+  if (is.character(volume) && !is.array(volume))
+    stop("'volume' must be a 3D array, not a file path. Use mincArray(mincGetVolume(\"file.mnc\")) to load it first.")
+  if (!is.array(volume) || length(dim(volume)) != 3)
+    stop("'volume' must be a 3D array. Got an object of class ", paste(class(volume), collapse = "/"), " with ", length(dim(volume)), " dimensions.")
+}
+
 
 #' Initialize a slice series
 #'
@@ -158,6 +165,7 @@ anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL,
     putSS(ssm, ss)
     return(ssm)
   } else {
+    validateVolume(volume)
     slice(ssm, volume, low, high, col=col, alpha=alpha, name=name)
   }
 }
@@ -201,6 +209,7 @@ overlay <- function(ssm, volume, low=NULL, high=NULL, col=defaultCol(),
                     underTransparent = TRUE, name=NULL, box=FALSE) {
 
   if (is.null(name)) name <- paste0("overlay#", ssm$seriesCounter)
+  validateVolume(volume)
   slice(ssm, volume, low, high, col=col, name=name, underTransparent = underTransparent, symmetric = symmetric,
         rCol=rCol, alpha=alpha, box=box)
 }
@@ -330,6 +339,7 @@ slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent 
 #'   draw()
 #' }
 contours <- function(ssm, volume, levels, col="red", lty=1, lwd=1, name="contours") {
+  validateVolume(volume)
   ss <- getSS(ssm)
   ss <- makeSlices(ss, volume)
   sliceList <- list()
