@@ -149,7 +149,7 @@ scaleSlice <- function(slice, low=NULL, high=NULL, underTransparent=TRUE) {
     under <- 0
   }
 
-  slice[slice <= 0] <- under
+  slice[slice < 0] <- under
   return(slice)
 }
 

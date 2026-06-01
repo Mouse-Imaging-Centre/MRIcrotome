@@ -124,8 +124,8 @@ makeSlices <- function(ss, volume) {
 #'   by the user
 #' @param volume 3D matrix representing the volume from which to obtain slices.
 #'   Can be either numbers or hexadecimal colours
-#' @param low Lower end of colour scale. Can be NULL if volume is a matrix of hexadecimals.
-#' @param high Upper end of colour scale. Can be NULL if volume is a matrix of hexadecimals.
+#' @param low Inclusive lower end of colour scale. Can be NULL if volume is a matrix of hexadecimals.
+#' @param high Inclusive upper end of colour scale. Can be NULL if volume is a matrix of hexadecimals.
 #' @param col The colour scale. Defaults to gray.
 #' @param alpha Value between 0 and 1, 0 being full transparent and 1 fully opaque.
 #' @param name Optional name.
@@ -172,10 +172,10 @@ anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL,
 #'   by the user
 #' @param volume 3D matrix representing the volume from which to obtain slices.
 #'   Can be either numbers or hexadecimal colours
-#' @param low Lower end of colour scale. Can be NULL if volume is a matrix of
+#' @param low Inclusive lower end of colour scale. Can be NULL if volume is a matrix of
 #'   hexadecimals. If symmetric=TRUE, then treat this as an absolute value (i.e.
 #'   2 would be >2 and < -2)
-#' @param high Upper end of colour scale.
+#' @param high Inclusive upper end of colour scale.
 #' @param col The colour scale. See defaultCol for default.
 #' @param symmetric Whether the colour scale is symmetric.
 #' @param rCol The reverse colour scale. Used if symmetric=TRUE. See defaultRCol
@@ -364,8 +364,8 @@ contours <- function(ssm, volume, levels, col="red", lty=1, lwd=1, name="contour
 #'   by the user
 #' @param volume 3D matrix representing the volume from which to draw the
 #'   background slice.
-#' @param low Low end of colour for background slice.
-#' @param high High end of colour for background slice.
+#' @param low Inclusive low end of colour for background slice.
+#' @param high Inclusive high end of colour for background slice.
 #' @param dimension Dimension to use for background slice. Will pick sensible
 #'   default if NULL.
 #' @param slice Slice number to use for background slice. Will pick sensible

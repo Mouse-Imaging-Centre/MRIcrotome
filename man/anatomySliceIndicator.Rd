@@ -15,9 +15,9 @@ by the user}
 \item{volume}{3D matrix representing the volume from which to draw the
 background slice.}
 
-\item{low}{Low end of colour for background slice.}
+\item{low}{Inclusive low end of colour for background slice.}
 
-\item{high}{High end of colour for background slice.}
+\item{high}{Inclusive high end of colour for background slice.}
 
 \item{dimension}{Dimension to use for background slice. Will pick sensible
 default if NULL.}

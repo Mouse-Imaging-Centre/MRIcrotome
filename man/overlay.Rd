@@ -15,11 +15,11 @@ by the user}
 \item{volume}{3D matrix representing the volume from which to obtain slices.
 Can be either numbers or hexadecimal colours}
 
-\item{low}{Lower end of colour scale. Can be NULL if volume is a matrix of
+\item{low}{Inclusive lower end of colour scale. Can be NULL if volume is a matrix of
 hexadecimals. If symmetric=TRUE, then treat this as an absolute value (i.e.
 2 would be >2 and < -2)}
 
-\item{high}{Upper end of colour scale.}
+\item{high}{Inclusive upper end of colour scale.}
 
 \item{col}{The colour scale. See defaultCol for default.}
 
