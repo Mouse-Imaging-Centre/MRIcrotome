@@ -23,7 +23,8 @@ For a full tutorial with rendered figures, see the
 MRIcrotome is designed to be used with pipes. A typical workflow starts with
 `sliceSeries()`, adds layers such as `anatomy()`, `overlay()`, or
 `contours()`, optionally adds `legend()` and `addtitle()`, and finishes with
-`draw()`.
+`draw()`. Both the magrittr pipe (`%>%`) and the R 4.1+ native pipe (`|>`)
+are supported.
 
 ```r
 library(MRIcrotome)
