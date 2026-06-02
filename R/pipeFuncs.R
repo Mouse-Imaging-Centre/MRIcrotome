@@ -306,6 +306,10 @@ slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent 
 #'   by the user
 #' @param volume 3D matrix representing the volume from which to obtain contours
 #' @param levels A vector of levels at which to draw the contours.
+#' @param labels An optional vector of label values to contour. When provided,
+#'   a binary mask is created from voxels matching any value in \code{labels},
+#'   and contours are drawn at the boundary. Cannot be used together with
+#'   \code{levels}.
 #' @param col The colour for the contours. Can be a single value, in which case
 #'   all levels will use the same colour, or a vector if different colours for
 #'   different levels are desired. Default is red.
@@ -329,7 +333,13 @@ slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent 
 #'   contours(abs(stats), levels=c(3,5), lwd=2, lty=c(3,1), col="green") %>%
 #'   draw()
 #' }
-contours <- function(ssm, volume, levels, col="red", lty=1, lwd=1, name="contours") {
+contours <- function(ssm, volume, levels=NULL, labels=NULL, col="red", lty=1, lwd=1, name="contours") {
+  if (!is.null(labels)) {
+    if (!is.null(levels)) stop("Cannot specify both 'levels' and 'labels'")
+    volume <- array(as.integer(volume %in% labels), dim = dim(volume))
+    levels <- 0.5
+  }
+  if (is.null(levels)) stop("Must specify either 'levels' or 'labels'")
   ss <- getSS(ssm)
   ss <- makeSlices(ss, volume)
   sliceList <- list()
