@@ -84,6 +84,37 @@ sliceSeries <- function(ssm=NULL,
   return(ssm)
 }
 
+#' Compute bounding box of a mask volume
+#'
+#' Given a binary mask, returns the begin and end slices along the
+#' specified dimension, with optional padding. Useful for setting the
+#' \code{begin} and \code{end} arguments of \code{\link{sliceSeries}}.
+#'
+#' @param mask A 3D array where non-zero values indicate the region of interest.
+#' @param dimension The dimension (1, 2, or 3) along which to compute bounds.
+#' @param padding Number of voxels to add as padding on each side. Defaults to 10.
+#'
+#' @return A named numeric vector with elements \code{begin} and \code{end}.
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' bounds <- maskBounds(binaryMask, dimension = 2, padding = 10)
+#' sliceSeries(nrow = 5, begin = bounds["begin"], end = bounds["end"],
+#'             dimension = 2) \%>\% ...
+#' }
+maskBounds <- function(mask, dimension, padding = 10) {
+  if (!is.array(mask) || length(dim(mask)) != 3)
+    stop("'mask' must be a 3D array")
+  idx <- which(mask != 0, arr.ind = TRUE)
+  if (nrow(idx) == 0)
+    stop("mask contains no non-zero values")
+  dims <- dim(mask)
+  begin <- max(1, min(idx[, dimension]) - padding)
+  end <- min(dims[dimension], max(idx[, dimension]) + padding)
+  c(begin = begin, end = end)
+}
+
 getSS <- function(ssm) {
   return(ssm$ssl[[ssm$seriesCounter]])
 }
