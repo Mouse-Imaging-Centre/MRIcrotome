@@ -11,6 +11,7 @@ sliceImage <- function(volume,
                        rCol = defaultRCol(),
                        alpha=NULL,
                        box=FALSE,
+                       interpolate = TRUE,
                        vp=NULL) {
 
   if (length(dim(volume)) != 3)
@@ -58,7 +59,7 @@ sliceImage <- function(volume,
     #rasterImage(colourizedSlice, xleft = 0, xright = sliceDims[1],
     #            ytop = 0, ybottom = sliceDims[2])
     g <- rasterGrob(colourizedSlice, vp=vp, width = unit(sliceDims[1], "native"),
-                    height = unit(sliceDims[2], "native")) #
+                    height = unit(sliceDims[2], "native"), interpolate = interpolate) #
     #grid.raster(colourizedSlice)
   #
   #return(invisible(NULL))
@@ -69,7 +70,7 @@ sliceImage <- function(volume,
                                  high=high,
                                  reverse=TRUE,
                                  underTransparent=TRUE,
-                                 col=rCol, vp=vp)))
+                                 col=rCol, vp=vp, interpolate = interpolate)))
     } else {
   #return(gList(g, rectGrob(gp=gpar(col="black", fill="#FFFFFF00"), vp=vp)))
       return(gList(g))
