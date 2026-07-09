@@ -7,10 +7,15 @@
 #'
 #' @examples
 MRIcroscope <- function(data) {
-  plot <- ggplot2::ggplot() + 
+  plot <- ggplot2::ggplot() +
     ggplot2::coord_sf() +
-    ggplot2::theme(axis.ticks = element_blank(), panel.grid = element_blank(), 
-          panel.background = element_blank(), axis.text = element_blank())
+    ggplot2::theme(
+      axis.ticks = element_blank(),
+      panel.grid = element_blank(),
+      panel.background = element_blank(),
+      axis.text = element_blank(),
+      axis.title = element_blank()
+    )
   plot$MRIcrotome <- data
   return(plot)
 }
@@ -48,8 +53,12 @@ add_anatomy <- function(plot, data=NULL, low=700, high=1400, guide="none") {
   if(is.null(data)) {
     data <- plot$MRIcrotome$anatomy
   }
+  # spatrasters have the annoying property of containing pointers that invalidate. Turn into df instead
+  if (class(data) == "SpatRaster") {
+    data <- as.data.frame(data, xy=T)
+  }
   plot <- plot + 
-    tidyterra::geom_spatraster(data=data) + 
+    ggplot2::geom_raster(data=data, aes(x=x, y=y, fill=lyr.1)) + 
     ggplot2::scale_fill_gradient("anatomy", 
                                  low="black", 
                                  high="white", 

@@ -354,7 +354,10 @@ MRIcrotome <- function(anatomy,
       data=outdata,
       sliceMod=modSliceList,
       functions=fList,
-      palette=palette
+      palette=palette,
+      polBBoxes=polBBoxes,
+      labelExtents=labelExtents,
+      sliceOffset=sliceOffset
     )
   class(out) <- "brain_atlas"
   return(out)
