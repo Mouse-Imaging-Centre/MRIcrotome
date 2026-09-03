@@ -7,13 +7,17 @@ Maintainer: Jason Lerch <jason.lerch@sickkids.ca>
 Description: Functions to create publication-ready figures from 3D volumes.
 License: BSD_3_clause
 Encoding: UTF-8
-LazyData: true
-Imports: dplyr,
-         purrr,
+Imports: purrr,
          grid,
-         RMINC
+         grDevices,
+         graphics,
+         stats
 Suggests: knitr,
-          rmarkdown
+          rmarkdown,
+          RMINC,
+          testthat (>= 3.0.0)
+Remotes: Mouse-Imaging-Centre/RMINC
+Config/testthat/edition: 3
 VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 6.1.1
+Config/roxygen2/version: 8.0.0

@@ -664,7 +664,7 @@ grobifyByRow <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol = N
     widths <- 1
   }
       
-  vA <- viewport(layout = grid.layout(nrow, ncol, width = widths)) #, widths = do.call(unit.c, widths)))
+  vA <- viewport(layout = grid.layout(nrow, ncol, widths = widths))
 
   return(gTree(children=do.call(gList, gs), vp=vA))
 }

@@ -4,9 +4,19 @@
 \alias{overlay}
 \title{Add overlay slices}
 \usage{
-overlay(ssm, volume, low = NULL, high = NULL, col = defaultCol(),
-  symmetric = FALSE, rCol = defaultRCol(), alpha = NULL,
-  underTransparent = TRUE, name = NULL, box = FALSE)
+overlay(
+  ssm,
+  volume,
+  low = NULL,
+  high = NULL,
+  col = defaultCol(),
+  symmetric = FALSE,
+  rCol = defaultRCol(),
+  alpha = NULL,
+  underTransparent = TRUE,
+  name = NULL,
+  box = FALSE
+)
 }
 \arguments{
 \item{ssm}{The slice series info, usually passed along the pipe and specified
