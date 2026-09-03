@@ -106,13 +106,13 @@ sliceSeries <- function(ssm=NULL,
 maskBounds <- function(mask, dimension, padding = 10) {
   if (!is.array(mask) || length(dim(mask)) != 3)
     stop("'mask' must be a 3D array")
-  idx <- which(mask != 0, arr.ind = TRUE)
-  if (nrow(idx) == 0)
+  if (!is.numeric(dimension) || length(dimension) != 1 || !(dimension %in% 1:3))
+    stop("'dimension' must be 1, 2, or 3")
+  inMask <- apply(mask != 0, dimension, any, na.rm = TRUE)
+  if (!any(inMask))
     stop("mask contains no non-zero values")
-  dims <- dim(mask)
-  begin <- max(1, min(idx[, dimension]) - padding)
-  end <- min(dims[dimension], max(idx[, dimension]) + padding)
-  c(begin = begin, end = end)
+  r <- range(which(inMask))
+  c(begin = max(1, r[1] - padding), end = min(dim(mask)[dimension], r[2] + padding))
 }
 
 getSS <- function(ssm) {
