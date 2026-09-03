@@ -5,8 +5,10 @@
 #' series with anatomy underlays, statistical overlays, contours, legends, and
 #' titles.
 #'
-#' @name MRIcrotome
 #' @import purrr
 #' @import grid
-#' @docType package
-NULL
+#' @importFrom grDevices colorRampPalette contourLines gray.colors
+#' @importFrom graphics hist
+#' @importFrom stats quantile
+#' @keywords internal
+"_PACKAGE"
