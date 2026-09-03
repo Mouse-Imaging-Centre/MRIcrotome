@@ -83,6 +83,32 @@ sliceSeries(nrow = 5, begin = 150, end = 250) %>%
   draw()
 ```
 
+### Slice order and orientation
+
+Slices are taken along `dimension` from `begin` to `end`, so swap the two
+(or pass `slices` explicitly) to show the series in the opposite order:
+
+```r
+sliceSeries(nrow = 1, ncol = 5, begin = 300, end = 200) %>%
+  anatomy(anatVol, low = 700, high = 1400) %>%
+  draw()
+```
+
+Each slice is drawn as it is stored in the array: the first remaining axis
+runs left to right and the second runs bottom to top, so a coronal slice
+(`dimension = 2`) shows axis 1 across and axis 3 up. To flip or rotate the
+slices, reorder or permute the array before passing it in, and use the same
+transformed array for every layer of the series:
+
+```r
+flipped <- anatVol[dim(anatVol)[1]:1, , ]   # mirror left-right
+rotated <- aperm(anatVol, c(3, 2, 1))       # swap the across and up axes
+```
+
+By default the up axis of every slice is reversed so that the highest index
+is at the top, as RMINC does. Set `options(RMINC_flip_image = FALSE)` to keep
+the array order instead.
+
 ### Using grobify for grid integration
 
 Use `grobify()` instead of `draw()` to obtain a `gTree` object that can
