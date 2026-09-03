@@ -21,9 +21,11 @@ by the user}
 \item{volume}{3D matrix representing the volume from which to obtain slices.
 Can be either numbers or hexadecimal colours}
 
-\item{low}{Inclusive lower end of colour scale. Can be NULL if volume is a matrix of hexadecimals.}
+\item{low}{Inclusive lower end of colour scale. If NULL, the 2nd percentile
+of the volume is used. Ignored if volume is a matrix of hexadecimals.}
 
-\item{high}{Inclusive upper end of colour scale. Can be NULL if volume is a matrix of hexadecimals.}
+\item{high}{Inclusive upper end of colour scale. If NULL, the 98th percentile
+of the volume is used. Ignored if volume is a matrix of hexadecimals.}
 
 \item{col}{The colour scale. Defaults to gray.}
 

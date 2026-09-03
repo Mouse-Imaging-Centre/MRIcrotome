@@ -23,7 +23,7 @@ sliceImage <- function(volume,
     m <- 1
   }
 
-  imRange <- getRangeFromHistogram(volume, low, high)
+  imRange <- getRange(volume, low, high)
   s$slice <- scaleSlice(s$slice, imRange[1] * m, imRange[2] *
                           m, underTransparent = underTransparent)
   sliceDims <- dim(s$slice)
@@ -43,8 +43,8 @@ sliceImage <- function(volume,
   #if (!all(is.na(s$slice))) {
   if (is.numeric(s$slice)) {
     colourDepth <- length(col)
-    paletteScaledSlice <- scaleSliceToPalette(s$slice, low,
-                                              high, col)
+    paletteScaledSlice <- scaleSliceToPalette(s$slice, imRange[1],
+                                              imRange[2], col)
     colourizedSlice <- col[paletteScaledSlice]
     dim(colourizedSlice) <- sliceDims
   }
@@ -111,12 +111,20 @@ defaultRCol <- function() {
   getOption("MRIcrotomeRcol", colorRampPalette(c("blue", "turquoise1"))(255))
 }
 
-getRangeFromHistogram <- function (volume, low = NULL, high = NULL) {
+# Colour range for a volume; whichever of low/high is NULL gets the robust
+# 2nd/98th percentile (the same "robust range" FSL uses), so a few extreme
+# voxels do not dictate the scale.
+getRange <- function (volume, low = NULL, high = NULL) {
   if (is.character(volume)) return(c(NA, NA))
-  if (is.null(low)) low <- quantile(volume, 0.02, na.rm = TRUE)
-  if (is.null(high)) high <- quantile(volume, 0.98, na.rm = TRUE)
-
-  return(c(low, high))
+  if (is.null(low) || is.null(high)) {
+    q <- quantile(volume, c(0.02, 0.98), na.rm = TRUE, names = FALSE)
+    # sparse volumes (e.g. a few labels on a zero background) collapse the
+    # robust range to a single value; use the full range instead
+    if (q[1] == q[2]) q <- range(volume, na.rm = TRUE)
+    if (is.null(low)) low <- q[1]
+    if (is.null(high)) high <- q[2]
+  }
+  c(low, high)
 }
 
 scaleSlice <- function(slice, low=NULL, high=NULL, underTransparent=TRUE) {
