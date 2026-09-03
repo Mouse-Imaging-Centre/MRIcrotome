@@ -149,11 +149,7 @@ anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL,
     ss <- getSS(ssm)
     ss[[name]] <- ssm$ssl[[ssm$seriesCounter-1]][["anatomy"]]
     ss[["seriesVP"]] <- ssm$ssl[[ssm$seriesCounter-1]][["seriesVP"]]
-    ss[["legendInfo"]][[name]] <-
-      list(type="slice",
-           low=ssm$ssl[[ssm$seriesCounter-1]]$low,
-           high=ssm$ssl[[ssm$seriesCounter-1]]$high,
-           col=ssm$ssl[[ssm$seriesCounter-1]]$col)
+    ss[["legendInfo"]][[name]] <- ssm$ssl[[ssm$seriesCounter-1]][["legendInfo"]][["anatomy"]]
     ss[["order"]][[length(ss$order)+1]] <- name
     putSS(ssm, ss)
     return(ssm)
@@ -264,8 +260,9 @@ addtitle <- function(ssm, title) {
 #' }
 legend <- function(ssm, description=NULL) {
   ss <- getSS(ssm)
-  ss$legendOrder <- c(ss$legendOrder, ss$order[[length(ss$order)]])
-  ss[["legendInfo"]][[length(ss$order)]]$description = description
+  last <- ss$order[[length(ss$order)]]
+  ss$legendOrder <- c(ss$legendOrder, last)
+  ss[["legendInfo"]][[last]]$description = description
   putSS(ssm, ss)
   return(ssm)
 }
