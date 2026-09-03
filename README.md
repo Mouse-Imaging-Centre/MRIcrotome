@@ -99,6 +99,31 @@ grid.newpage()
 grid.draw(g)
 ```
 
+### Figure size and padding
+
+Each slice series keeps the aspect ratio of its slices: the grid of slices is
+`ncol * w` wide by `nrow * h` high, where `w` and `h` are the slice
+dimensions in voxels (`dim(volume)[-dimension]`; voxel size is not taken
+into account). When the device has a different shape, the slices are centred
+in their cell and the rest of the cell is filled with the black background.
+To avoid that padding, size the device to the figure:
+
+```r
+d <- dim(anatVol)[-2]                     # slice dimensions for dimension = 2
+nrow <- 5; ncol <- 5
+png("figure.png", width = ncol * d[1], height = nrow * d[2])   # or any multiple
+sliceSeries(nrow = nrow, ncol = ncol, begin = 100, end = 350) %>%
+  anatomy(anatVol, low = 700, high = 1400) %>%
+  draw()
+dev.off()
+```
+
+Legends add a few lines of width in column layout and 20% in row layout;
+titles add one line of height in column layout and 10% of width in row
+layout. In row layout every slice series gets one row of equal height, so
+give the series the same `ncol` and similar slice dimensions when they should
+line up.
+
 ## Key functions
 
 | Function | Description |
