@@ -211,8 +211,9 @@ overlay <- function(ssm, volume, low=NULL, high=NULL, col=defaultCol(),
 #' @param ssm The slice series info, usually passed along the pipe and specified
 #'   by the user
 #' @param title The text that will be used for the title.
-#' @param side Which side to place the title on in row layout: \code{"right"}
-#'   (default) or \code{"left"}. Only affects \code{draw(layout = "row")}.
+#' @param side Which side of the slices to put the title on in row layout
+#'   (\code{draw(layout = "row")}): \code{"right"} (default) or \code{"left"}.
+#'   Ignored in column layout, where titles go above the slices.
 #'
 #' @return The slices series for continuation down the pipe.
 #' @export
@@ -627,57 +628,41 @@ grobify <- function(ssm, layout="column", titlePars = gpar(), legendPars = gpar(
 
 grobifyByRow <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol = NULL) {
   nseries <- length(ssm$ssl)
-  haveTitles <- any(sapply(ssm$ssl, function(x) length(x$title)>0))
-  haveLegends <- any(sapply(ssm$ssl, function(x) length(x$legendOrder)>0))
+  sides <- sapply(ssm$ssl, function(x) if (length(x$title) > 0) x$titleSide %||% "right" else NA_character_)
+  haveLeft <- any(sides == "left", na.rm = TRUE)
+  haveRight <- any(sides == "right", na.rm = TRUE)
+  haveLegends <- any(sapply(ssm$ssl, function(x) length(x$legendOrder) > 0))
 
-  leftTitles <- haveTitles && any(sapply(ssm$ssl, function(x) identical(x$titleSide, "left")))
-
-  nrow <- nseries
-  ncol <- 1 + haveTitles + haveLegends
+  # columns, each present only when some series needs it: [left title] slices [right title] [legend]
+  sliceCol <- 1 + haveLeft
+  rightCol <- sliceCol + 1
+  legendCol <- sliceCol + haveRight + 1
+  ncol <- sliceCol + haveRight + haveLegends
+  widths <- c(if (haveLeft) 0.1,
+              1 - 0.1 * (haveLeft + haveRight) - 0.2 * haveLegends,
+              if (haveRight) 0.1,
+              if (haveLegends) 0.2)
 
   gs <- list()
-
   for (i in 1:nseries) {
-    hasTitle <- length(ssm$ssl[[i]]$title) > 0
-    isLeft <- identical(ssm$ssl[[i]]$titleSide, "left")
-    sliceCol <- if (leftTitles && hasTitle && isLeft) 2 else 1
-
-    if (hasTitle && isLeft) {
-      gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.row = i, layout.pos.col = 1),
-                                  children=gList(textGrob(ssm$ssl[[i]]$title, rot=90, gp = titlePars)))
-    }
-
-    gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.row = i,
-                                            layout.pos.col = sliceCol),
-                                children=gList(grobifySliceSeries(ssm$ssl[[i]])))
-
-    if (hasTitle && !isLeft) {
+    ss <- ssm$ssl[[i]]
+    gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.row = i, layout.pos.col = sliceCol),
+                                children=gList(grobifySliceSeries(ss)))
+    if (!is.na(sides[i])) {
       gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.row = i,
-                                              layout.pos.col = sliceCol + 1),
-                                  children=gList(textGrob(ssm$ssl[[i]]$title, rot=90, gp = titlePars)))
+                                              layout.pos.col = if (sides[i] == "left") 1 else rightCol),
+                                  children=gList(textGrob(ss$title, rot=90, gp = titlePars)))
     }
-
-    if (length(ssm$ssl[[i]]$legendOrder)>0) {
-      legendCol <- sliceCol + if (hasTitle && !isLeft) 2 else 1
-      gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.col = legendCol, layout.pos.row = i),
-                                  children=gList(assembleLegends(ssm$ssl[[i]], gp = legendPars)))
+    if (length(ss$legendOrder) > 0) {
+      gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.row = i, layout.pos.col = legendCol),
+                                  children=gList(assembleLegends(ss, gp = legendPars)))
     }
   }
 
   if(!is.null(bgCol))
     gs <- c(list(rectGrob(gp = gpar(col = NA, fill = bgCol))), gs)
 
-  if(haveTitles && haveLegends){
-    if (leftTitles) widths <- c(0.1, 0.7, 0.2) else widths <- c(0.7, 0.1, 0.2)
-  } else if(haveTitles) {
-    if (leftTitles) widths <- c(0.1, 0.9) else widths <- c(0.9, 0.1)
-  } else if(haveLegends){
-    widths <- c(0.8, 0.2)
-  } else {
-    widths <- 1
-  }
-
-  vA <- viewport(layout = grid.layout(nrow, ncol, width = widths))
+  vA <- viewport(layout = grid.layout(nseries, ncol, widths = widths))
 
   return(gTree(children=do.call(gList, gs), vp=vA))
 }
