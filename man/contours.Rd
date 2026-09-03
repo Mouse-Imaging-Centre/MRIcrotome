@@ -4,7 +4,16 @@
 \alias{contours}
 \title{Add contours to a slice series}
 \usage{
-contours(ssm, volume, levels, col = "red", lty = 1, lwd = 1, name = "contours")
+contours(
+  ssm,
+  volume,
+  levels = NULL,
+  col = "red",
+  lty = 1,
+  lwd = 1,
+  name = "contours",
+  labels = NULL
+)
 }
 \arguments{
 \item{ssm}{The slice series info, usually passed along the pipe and specified
@@ -12,7 +21,8 @@ by the user}
 
 \item{volume}{3D matrix representing the volume from which to obtain contours}
 
-\item{levels}{A vector of levels at which to draw the contours.}
+\item{levels}{A vector of levels at which to draw the contours. Give either
+\code{levels} or \code{labels}, not both.}
 
 \item{col}{The colour for the contours. Can be a single value, in which case
 all levels will use the same colour, or a vector if different colours for
@@ -27,6 +37,11 @@ all levels will use the same line width, or a vector if different line widths fo
 different levels are desired. Default is 1.}
 
 \item{name}{An optional name.}
+
+\item{labels}{An optional vector of label values to contour, for atlas or
+segmentation volumes. Voxels whose value is in \code{labels} are turned
+into a binary mask and the contour is drawn at its boundary. Give either
+\code{levels} or \code{labels}, not both.}
 }
 \value{
 The slices series for continuation down the pipe.
@@ -42,6 +57,12 @@ sliceSeries(nrow = 1, begin=200, end=300) \%>\%
   overlay(stats, low=2, high=6, symmetric = T) \%>\%
   legend("t-statistics") \%>\%
   contours(abs(stats), levels=c(3,5), lwd=2, lty=c(3,1), col="green") \%>\%
+  draw()
+
+# outline the hippocampus from an atlas of labels
+sliceSeries(nrow = 1, begin=200, end=300) \%>\%
+  anatomy(anatVol, low=700, high=1400) \%>\%
+  contours(atlas, labels=hippocampusLabels, col="magenta") \%>\%
   draw()
 }
 }

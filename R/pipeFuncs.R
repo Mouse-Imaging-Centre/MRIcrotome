@@ -305,11 +305,8 @@ slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent 
 #' @param ssm The slice series info, usually passed along the pipe and specified
 #'   by the user
 #' @param volume 3D matrix representing the volume from which to obtain contours
-#' @param levels A vector of levels at which to draw the contours.
-#' @param labels An optional vector of label values to contour. When provided,
-#'   a binary mask is created from voxels matching any value in \code{labels},
-#'   and contours are drawn at the boundary. Cannot be used together with
-#'   \code{levels}.
+#' @param levels A vector of levels at which to draw the contours. Give either
+#'   \code{levels} or \code{labels}, not both.
 #' @param col The colour for the contours. Can be a single value, in which case
 #'   all levels will use the same colour, or a vector if different colours for
 #'   different levels are desired. Default is red.
@@ -320,6 +317,10 @@ slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent 
 #'   all levels will use the same line width, or a vector if different line widths for
 #'   different levels are desired. Default is 1.
 #' @param name An optional name.
+#' @param labels An optional vector of label values to contour, for atlas or
+#'   segmentation volumes. Voxels whose value is in \code{labels} are turned
+#'   into a binary mask and the contour is drawn at its boundary. Give either
+#'   \code{levels} or \code{labels}, not both.
 #'
 #' @return The slices series for continuation down the pipe.
 #' @export
@@ -332,8 +333,14 @@ slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent 
 #'   legend("t-statistics") %>%
 #'   contours(abs(stats), levels=c(3,5), lwd=2, lty=c(3,1), col="green") %>%
 #'   draw()
+#'
+#' # outline the hippocampus from an atlas of labels
+#' sliceSeries(nrow = 1, begin=200, end=300) %>%
+#'   anatomy(anatVol, low=700, high=1400) %>%
+#'   contours(atlas, labels=hippocampusLabels, col="magenta") %>%
+#'   draw()
 #' }
-contours <- function(ssm, volume, levels=NULL, labels=NULL, col="red", lty=1, lwd=1, name="contours") {
+contours <- function(ssm, volume, levels=NULL, col="red", lty=1, lwd=1, name="contours", labels=NULL) {
   if (!is.null(labels)) {
     if (!is.null(levels)) stop("Cannot specify both 'levels' and 'labels'")
     volume <- array(as.integer(volume %in% labels), dim = dim(volume))
