@@ -15,7 +15,8 @@ overlay(
   alpha = NULL,
   underTransparent = TRUE,
   name = NULL,
-  box = FALSE
+  box = FALSE,
+  interpolate = TRUE
 )
 }
 \arguments{
@@ -45,6 +46,10 @@ for default.}
 \item{name}{Optional name.}
 
 \item{box}{Whether to draw a box around the overlay. Defaults to FALSE.}
+
+\item{interpolate}{Logical; whether to apply linear interpolation to the
+overlay image when drawing. Set to \code{FALSE} for sharp boundaries
+(e.g., label overlays with discrete colours). Defaults to TRUE.}
 }
 \value{
 The slices series for continuation down the pipe.
