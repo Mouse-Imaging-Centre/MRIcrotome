@@ -243,6 +243,10 @@ addtitle <- function(ssm, title) {
 #'   by the user
 #' @param description The text that will be used to describe the legend. Can be
 #'   NULL, in which case the colour bar is shown without a description.
+#' @param global If TRUE, and the figure is drawn with \code{layout = "row"},
+#'   the legend spans all rows as one shared legend for the whole figure
+#'   instead of sitting beside its own slice series. In column layout a legend
+#'   already spans the full height, so this has no effect there.
 #'
 #' @return The slices series for continuation down the pipe.
 #' @export
@@ -258,11 +262,25 @@ addtitle <- function(ssm, title) {
 #'   addtitle("Stats") %>%
 #'   legend("t-statistics") %>%
 #'   draw()
+#'
+#' # one colour bar for three views drawn as rows
+#' sliceSeries(nrow = 1, ncol = 5, begin = 100, end = 350, dimension = 2) %>%
+#'   anatomy(anatVol, low=700, high=1400) %>%
+#'   overlay(stats, low=2, high=6, symmetric = T) %>%
+#'   sliceSeries(dimension = 1) %>%
+#'   anatomy(anatVol, low=700, high=1400) %>%
+#'   overlay(stats, low=2, high=6, symmetric = T) %>%
+#'   sliceSeries(dimension = 3) %>%
+#'   anatomy(anatVol, low=700, high=1400) %>%
+#'   overlay(stats, low=2, high=6, symmetric = T) %>%
+#'   legend("t-statistics", global = TRUE) %>%
+#'   draw(layout = "row")
 #' }
-legend <- function(ssm, description=NULL) {
+legend <- function(ssm, description=NULL, global=FALSE) {
   ss <- getSS(ssm)
   ss$legendOrder <- c(ss$legendOrder, ss$order[[length(ss$order)]])
   ss[["legendInfo"]][[length(ss$order)]]$description = description
+  ss$legendGlobal <- global
   putSS(ssm, ss)
   return(ssm)
 }
@@ -645,7 +663,9 @@ grobifyByRow <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol = N
     }
     if (length(ssm$ssl[[i]]$legendOrder)>0) {
       column <- column + 1
-      gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.col = column, layout.pos.row = i),
+      # a global legend spans every row of the figure
+      rows <- if (isTRUE(ssm$ssl[[i]]$legendGlobal)) 1:nseries else i
+      gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.col = column, layout.pos.row = rows),
                                   children=gList(assembleLegends(ssm$ssl[[i]], gp = legendPars)))
     }
   }
