@@ -184,6 +184,9 @@ anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL,
 #' @param underTransparent Whether to make the under colour transparent. Defaults to TRUE.
 #' @param name Optional name.
 #' @param box Whether to draw a box around the overlay. Defaults to FALSE.
+#' @param interpolate Logical; whether to apply linear interpolation to the
+#'   overlay image when drawing. Set to \code{FALSE} for sharp boundaries
+#'   (e.g., label overlays with discrete colours). Defaults to TRUE.
 #'
 #' @return The slices series for continuation down the pipe.
 #' @export
@@ -198,11 +201,12 @@ anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL,
 #' }
 overlay <- function(ssm, volume, low=NULL, high=NULL, col=defaultCol(),
                     symmetric=FALSE, rCol=defaultRCol(), alpha=NULL,
-                    underTransparent = TRUE, name=NULL, box=FALSE) {
+                    underTransparent = TRUE, name=NULL, box=FALSE,
+                    interpolate = TRUE) {
 
   if (is.null(name)) name <- paste0("overlay#", ssm$seriesCounter)
   slice(ssm, volume, low, high, col=col, name=name, underTransparent = underTransparent, symmetric = symmetric,
-        rCol=rCol, alpha=alpha, box=box)
+        rCol=rCol, alpha=alpha, box=box, interpolate = interpolate)
 }
 
 
@@ -268,7 +272,7 @@ legend <- function(ssm, description=NULL) {
 }
 
 slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent = FALSE, symmetric=FALSE,
-                  rCol=defaultRCol(), alpha=NULL,name=NULL, box=FALSE) {
+                  rCol=defaultRCol(), alpha=NULL,name=NULL, box=FALSE, interpolate = TRUE) {
   ss <- getSS(ssm)
   ss <- makeSlices(ss, volume)
   #message(paste(ss$slices, collapse = " "))
@@ -282,6 +286,7 @@ slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent 
                                          underTransparent = underTransparent,
                                          symmetric = symmetric,
                                          rCol = rCol, alpha=alpha, box=box,
+                                         interpolate = interpolate,
                                          vp=viewport(layout.pos.row = i,
                                                      layout.pos.col = j,
                                                      xscale=c(0, sliceDims[1]),
