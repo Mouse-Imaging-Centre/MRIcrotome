@@ -149,11 +149,7 @@ anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL,
     ss <- getSS(ssm)
     ss[[name]] <- ssm$ssl[[ssm$seriesCounter-1]][["anatomy"]]
     ss[["seriesVP"]] <- ssm$ssl[[ssm$seriesCounter-1]][["seriesVP"]]
-    ss[["legendInfo"]][[name]] <-
-      list(type="slice",
-           low=ssm$ssl[[ssm$seriesCounter-1]]$low,
-           high=ssm$ssl[[ssm$seriesCounter-1]]$high,
-           col=ssm$ssl[[ssm$seriesCounter-1]]$col)
+    ss[["legendInfo"]][[name]] <- ssm$ssl[[ssm$seriesCounter-1]][["legendInfo"]][["anatomy"]]
     ss[["order"]][[length(ss$order)+1]] <- name
     putSS(ssm, ss)
     return(ssm)
@@ -200,7 +196,10 @@ overlay <- function(ssm, volume, low=NULL, high=NULL, col=defaultCol(),
                     symmetric=FALSE, rCol=defaultRCol(), alpha=NULL,
                     underTransparent = TRUE, name=NULL, box=FALSE) {
 
-  if (is.null(name)) name <- paste0("overlay#", ssm$seriesCounter)
+  if (is.null(name)) {
+    ss <- getSS(ssm)
+    name <- paste0("overlay#", ssm$seriesCounter, "_", length(ss$order) + 1)
+  }
   slice(ssm, volume, low, high, col=col, name=name, underTransparent = underTransparent, symmetric = symmetric,
         rCol=rCol, alpha=alpha, box=box)
 }
@@ -261,8 +260,9 @@ addtitle <- function(ssm, title) {
 #' }
 legend <- function(ssm, description=NULL) {
   ss <- getSS(ssm)
-  ss$legendOrder <- c(ss$legendOrder, ss$order[[length(ss$order)]])
-  ss[["legendInfo"]][[length(ss$order)]]$description = description
+  last <- ss$order[[length(ss$order)]]
+  ss$legendOrder <- c(ss$legendOrder, last)
+  ss[["legendInfo"]][[last]]$description = description
   putSS(ssm, ss)
   return(ssm)
 }
