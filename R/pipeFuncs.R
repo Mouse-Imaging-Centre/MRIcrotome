@@ -211,6 +211,9 @@ overlay <- function(ssm, volume, low=NULL, high=NULL, col=defaultCol(),
 #' @param ssm The slice series info, usually passed along the pipe and specified
 #'   by the user
 #' @param title The text that will be used for the title.
+#' @param side Which side of the slices to put the title on in row layout
+#'   (\code{draw(layout = "row")}): \code{"right"} (default) or \code{"left"}.
+#'   Ignored in column layout, where titles go above the slices.
 #'
 #' @return The slices series for continuation down the pipe.
 #' @export
@@ -227,9 +230,11 @@ overlay <- function(ssm, volume, low=NULL, high=NULL, col=defaultCol(),
 #'   legend("t-statistics") %>%
 #'   draw()
 #' }
-addtitle <- function(ssm, title) {
+addtitle <- function(ssm, title, side = "right") {
+  side <- match.arg(side, c("left", "right"))
   ss <- getSS(ssm)
   ss$title <- title
+  ss$titleSide <- side
   putSS(ssm, ss)
   return(ssm)
 }
@@ -623,48 +628,41 @@ grobify <- function(ssm, layout="column", titlePars = gpar(), legendPars = gpar(
 
 grobifyByRow <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol = NULL) {
   nseries <- length(ssm$ssl)
-  haveTitles <- any(sapply(ssm$ssl, function(x) length(x$title))>0)
-  haveLegends <- any(sapply(ssm$ssl, function(x) length(x$legendOrder))>0)
+  sides <- sapply(ssm$ssl, function(x) if (length(x$title) > 0) x$titleSide %||% "right" else NA_character_)
+  haveLeft <- any(sides == "left", na.rm = TRUE)
+  haveRight <- any(sides == "right", na.rm = TRUE)
+  haveLegends <- any(sapply(ssm$ssl, function(x) length(x$legendOrder) > 0))
 
-  nrow <- nseries
-  ncol <- 1 + haveTitles + haveLegends
+  # columns, each present only when some series needs it: [left title] slices [right title] [legend]
+  sliceCol <- 1 + haveLeft
+  rightCol <- sliceCol + 1
+  legendCol <- sliceCol + haveRight + 1
+  ncol <- sliceCol + haveRight + haveLegends
+  widths <- c(if (haveLeft) 0.1,
+              1 - 0.1 * (haveLeft + haveRight) - 0.2 * haveLegends,
+              if (haveRight) 0.1,
+              if (haveLegends) 0.2)
 
   gs <- list()
-  column <- haveTitles+1
-
   for (i in 1:nseries) {
-    column <- 1
-    gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.row = i,
-                                            layout.pos.col = column),
-                                children=gList(grobifySliceSeries(ssm$ssl[[i]])))
-    if (length(ssm$ssl[[i]]$title)>0) {
-      column <- column + 1
+    ss <- ssm$ssl[[i]]
+    gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.row = i, layout.pos.col = sliceCol),
+                                children=gList(grobifySliceSeries(ss)))
+    if (!is.na(sides[i])) {
       gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.row = i,
-                                              layout.pos.col = column),
-                                  children=gList(textGrob(ssm$ssl[[i]]$title, rot=90, gp = titlePars)))
+                                              layout.pos.col = if (sides[i] == "left") 1 else rightCol),
+                                  children=gList(textGrob(ss$title, rot=90, gp = titlePars)))
     }
-    if (length(ssm$ssl[[i]]$legendOrder)>0) {
-      column <- column + 1
-      gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.col = column, layout.pos.row = i),
-                                  children=gList(assembleLegends(ssm$ssl[[i]], gp = legendPars)))
+    if (length(ss$legendOrder) > 0) {
+      gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.row = i, layout.pos.col = legendCol),
+                                  children=gList(assembleLegends(ss, gp = legendPars)))
     }
   }
 
   if(!is.null(bgCol))
     gs <- c(list(rectGrob(gp = gpar(col = NA, fill = bgCol))), gs)
 
-  
-  if(haveTitles && haveLegends){
-    widths <- c(0.7, 0.1, 0.2)
-  } else if(haveTitles) {
-    widths <- c(0.9, 0.1)
-  } else if(haveLegends){
-    widths <- c(0.8, 0.2)
-  } else {
-    widths <- 1
-  }
-      
-  vA <- viewport(layout = grid.layout(nrow, ncol, widths = widths))
+  vA <- viewport(layout = grid.layout(nseries, ncol, widths = widths))
 
   return(gTree(children=do.call(gList, gs), vp=vA))
 }
