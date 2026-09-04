@@ -2,12 +2,12 @@ test_that("legend(global = TRUE) spans all rows in row layout (#15)", {
   v <- testVolumes()
   pdf(NULL); on.exit(dev.off())
   threeViews <- function(global) {
-    sliceSeries(nrow = 1, ncol = 3, begin = 5, end = 20, dimension = 2) |>
-      anatomy(v$anat, 0, 3000) |> overlay(v$stats, 2, 6, symmetric = TRUE) |>
-      sliceSeries(dimension = 1) |>
-      anatomy(v$anat, 0, 3000) |> overlay(v$stats, 2, 6, symmetric = TRUE) |>
-      sliceSeries(dimension = 3) |>
-      anatomy(v$anat, 0, 3000) |> overlay(v$stats, 2, 6, symmetric = TRUE) |>
+    sliceSeries(nrow = 1, ncol = 3, begin = 5, end = 20, dimension = 2) %>%
+      anatomy(v$anat, 0, 3000) %>% overlay(v$stats, 2, 6, symmetric = TRUE) %>%
+      sliceSeries(dimension = 1) %>%
+      anatomy(v$anat, 0, 3000) %>% overlay(v$stats, 2, 6, symmetric = TRUE) %>%
+      sliceSeries(dimension = 3) %>%
+      anatomy(v$anat, 0, 3000) %>% overlay(v$stats, 2, 6, symmetric = TRUE) %>%
       legend("t-statistics", global = global)
   }
   # the legend is the last grob added; its viewport gives the rows it covers
