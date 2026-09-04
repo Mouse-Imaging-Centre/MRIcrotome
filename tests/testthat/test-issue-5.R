@@ -8,6 +8,6 @@ test_that("maskBounds() gives padded slice bounds from a mask (#5)", {
   expect_error(maskBounds(array(0L, c(2, 2, 2)), 1), "no non-zero")
   expect_error(maskBounds(matrix(1, 2, 2), 1), "3D array")
   b <- maskBounds(mask, 2)
-  expect_no_error(sliceSeries(nrow = 2, ncol = 2, begin = b["begin"], end = b["end"]) |>
+  expect_no_error(sliceSeries(nrow = 2, ncol = 2, begin = b["begin"], end = b["end"]) %>%
                     anatomy(mask * 1000, low = 0, high = 1000))
 })
