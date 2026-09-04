@@ -5,7 +5,7 @@ Version: 0.2.0
 Author: Jason Lerch
 Maintainer: Jason Lerch <jason.lerch@sickkids.ca>
 Description: Functions to create publication-ready figures from 3D volumes.
-License: BSD_3_clause
+License: BSD_3_clause + file LICENSE
 Encoding: UTF-8
 Imports: purrr,
          grid,
