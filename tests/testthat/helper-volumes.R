@@ -1,3 +1,6 @@
+# The tests use the magrittr pipe from purrr (an Import) so they run on R < 4.1.
+`%>%` <- purrr::`%>%`
+
 # Small synthetic volumes shared by the tests, so no MINC files are needed.
 testVolumes <- function() {
   set.seed(1)
