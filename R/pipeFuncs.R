@@ -176,10 +176,12 @@ anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL,
 #'   hexadecimals. If symmetric=TRUE, then treat this as an absolute value (i.e.
 #'   2 would be >2 and < -2)
 #' @param high Inclusive upper end of colour scale.
-#' @param col The colour scale. See defaultCol for default.
+#' @param col The colour scale. Defaults to \code{\link{defaultCol}()}, a
+#'   red-yellow ramp that can be changed with \code{options(MRIcrotomeCol = ...)}.
 #' @param symmetric Whether the colour scale is symmetric.
-#' @param rCol The reverse colour scale. Used if symmetric=TRUE. See defaultRCol
-#'   for default.
+#' @param rCol The reverse colour scale. Used if symmetric=TRUE. Defaults to
+#'   \code{\link{defaultRCol}()}, a blue-turquoise ramp that can be changed
+#'   with \code{options(MRIcrotomeRcol = ...)}.
 #' @param alpha Value between 0 and 1, 0 being full transparent and 1 fully opaque.
 #' @param underTransparent Whether to make the under colour transparent. Defaults to TRUE.
 #' @param name Optional name.
