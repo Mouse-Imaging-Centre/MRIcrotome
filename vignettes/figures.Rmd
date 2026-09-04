@@ -2,7 +2,19 @@
 title: "Making pretty figures using MRIcrotome"
 author: "Jason Lerch"
 date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Making pretty figures using MRIcrotome}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
+
+```{r setup, include = FALSE}
+# The example data (sliceData.RData) is not distributed with the package.
+# The code runs only when the file is present; the pre-rendered figures.html
+# in the repository shows the output.
+knitr::opts_chunk$set(eval = file.exists("sliceData.RData"))
+```
 
 Load the required data from a file; for the moment, this contains two 3D volumes; _anatVol_ and _stats_ containing the anatomy to use in the background and the output of some statistical computations. (Note for RMINC users: in these examples _anatVol_ and _stats_ would be the output of _mincArray_)
 
@@ -10,10 +22,10 @@ Load the required data from a file; for the moment, this contains two 3D volumes
 load("sliceData.RData")
 ```
 
-The best way to use MRIcrotome is through pipes; let's load the full tidyverse for now (though only pipes are actively used). Also, the graphics subsystem is _grid_ graphics, so let's go ahead and load that as well.
+The best way to use MRIcrotome is through pipes; the pipe comes from _purrr_, which MRIcrotome already depends on (the full tidyverse works just as well). Also, the graphics subsystem is _grid_ graphics, so let's go ahead and load that as well.
 
 ```{r}
-library(tidyverse)
+library(purrr)
 library(grid)
 library(MRIcrotome)
 ```
