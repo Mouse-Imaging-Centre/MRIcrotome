@@ -341,14 +341,14 @@ slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent 
 #'   draw()
 #' }
 contours <- function(ssm, volume, levels=NULL, col="red", lty=1, lwd=1, name="contours", labels=NULL) {
+  if (!is.null(labels) && !is.null(levels)) stop("Cannot specify both 'levels' and 'labels'")
+  if (is.null(labels) && is.null(levels)) stop("Must specify either 'levels' or 'labels'")
+  ss <- getSS(ssm)
+  ss <- makeSlices(ss, volume)   # checks the volume before it is used below
   if (!is.null(labels)) {
-    if (!is.null(levels)) stop("Cannot specify both 'levels' and 'labels'")
     volume <- array(as.integer(volume %in% labels), dim = dim(volume))
     levels <- 0.5
   }
-  if (is.null(levels)) stop("Must specify either 'levels' or 'labels'")
-  ss <- getSS(ssm)
-  ss <- makeSlices(ss, volume)
   sliceList <- list()
   counter <- 1
   sliceDims <- dim(volume)[-ss$dimension]
