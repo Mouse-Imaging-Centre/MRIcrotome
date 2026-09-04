@@ -5,6 +5,21 @@ initMetaSliceSeries <- function() {
   return(ssm)
 }
 
+# Every function that takes a volume goes through here, so a file path or a
+# volume that was not passed through mincArray() fails with a clear message
+# instead of a cryptic grid error.
+validateVolume <- function(volume) {
+  if (is.character(volume) && length(volume) == 1)
+    stop("'volume' must be a 3D array, not a file path. ",
+         "Use mincArray(mincGetVolume(\"", volume, "\")) to load it first.")
+  if (inherits(volume, "mincSingleDim"))
+    stop("'volume' must be a 3D array. Wrap the output of mincGetVolume() in mincArray().")
+  if (!is.array(volume) || length(dim(volume)) != 3)
+    stop("'volume' must be a 3D array. Got an object of class ",
+         paste(class(volume), collapse = "/"), " with ", length(dim(volume)), " dimensions.")
+  invisible(volume)
+}
+
 
 #' Initialize a slice series
 #'
@@ -92,6 +107,7 @@ putSS <- function(ssm, ss) {
 }
 
 makeSlices <- function(ss, volume) {
+  validateVolume(volume)
   #message("seriesVP", ss$seriesVP)
   #message("slices", ss$slices)
   if (is.null(ss$seriesVP)) {
@@ -388,6 +404,7 @@ contours <- function(ssm, volume, levels, col="red", lty=1, lwd=1, name="contour
 anatomySliceIndicator <- function(ssm, volume, low, high, dimension=NULL,
                                   slice=NULL, col=gray.colors(255, start=0),
                                   lineColour="green") {
+  validateVolume(volume)
   defDS <- sliceIndicatorDefaultDimensionAndSlice(ssm, volume)
   if (is.null(dimension)) dimension <- defDS[[1]]
   if (is.null(slice)) slice <- defDS[[2]]
@@ -430,6 +447,7 @@ anatomySliceIndicator <- function(ssm, volume, low, high, dimension=NULL,
 #'   draw()
 #' }
 contourSliceIndicator <- function(ssm, volume, levels, dimension=NULL, slice=NULL, col="red", lty=1, lwd=1, lineColour="black") {
+  validateVolume(volume)
   defDS <- sliceIndicatorDefaultDimensionAndSlice(ssm, volume)
   if (is.null(dimension)) dimension <- defDS[[1]]
   if (is.null(slice)) slice <- defDS[[2]]

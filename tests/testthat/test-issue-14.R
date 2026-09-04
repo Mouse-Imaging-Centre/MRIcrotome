@@ -1,0 +1,15 @@
+test_that("invalid volumes give a clear error (#14)", {
+  v <- testVolumes()
+  ssm <- function() sliceSeries(nrow = 1, begin = 5, end = 20)
+  expect_error(ssm() %>% anatomy("/a/file.mnc", low = 0, high = 1), "mincGetVolume\\(\"/a/file.mnc\"\\)")
+  expect_error(ssm() %>% overlay("/a/file.mnc"), "not a file path")
+  expect_error(ssm() %>% contours("/a/file.mnc", levels = 1), "not a file path")
+  expect_error(ssm() %>% anatomy(v$anat, 0, 1) %>% anatomySliceIndicator("/a/file.mnc", 0, 1), "not a file path")
+  expect_error(ssm() %>% anatomy(v$anat, 0, 1) %>% contourSliceIndicator("/a/file.mnc", 1), "not a file path")
+  oneDim <- structure(as.numeric(v$anat), class = c("mincSingleDim", "numeric"), sizes = dim(v$anat))
+  expect_error(ssm() %>% anatomy(oneDim, 0, 1), "mincArray")
+  expect_error(ssm() %>% anatomy(matrix(1:4, 2), 0, 1), "2 dimensions")
+  # hex-colour volumes are still accepted
+  hex <- array("#FF0000", dim(v$anat))
+  expect_no_error(ssm() %>% anatomy(hex))
+})
