@@ -438,7 +438,7 @@ contourSliceIndicator <- function(ssm, volume, levels, dimension=NULL, slice=NUL
   indVP <- setupSliceIndicatorVP(volume, dimension)
   indContour <- sliceContours(volume, dimension,levels = levels, col=col, lty=lty, lwd=lwd,
                               slice=slice, vp=indVP)
-  return(sliceIndicator(ssm, volume, dimension, indContour, indVP, "black"))
+  return(sliceIndicator(ssm, volume, dimension, indContour, indVP, lineColour))
 }
 
 setupSliceIndicatorVP <- function(volume, dimension) {
@@ -501,8 +501,8 @@ sliceIndicator <- function(ssm, volume, dimension, bgGrob, indVP, lineColour="gr
 
 assembleLegends <- function(ss, gp = gpar()) {
 
-  # some weirdness for the layout; I want alternating legends and small spacers, so that's
-  # what these next few lines do.
+  if (length(ss$legendOrder) == 0) return(NULL)
+
   nrows <- (length(ss$legendOrder)*2)-1
   widthSize <- c(rbind(rep(1, length(ss$legendOrder)),
                        rep(0.2, length(ss$legendOrder))))
@@ -531,35 +531,21 @@ assembleLegends <- function(ss, gp = gpar()) {
                               children=gl)
   }
 
-  ll <- gTree(vp=legendViewport, children=do.call(gList, legendGrobs))
+  gTree(vp=legendViewport, children=do.call(gList, legendGrobs))
+}
 
-  # the legend widths depend on the number of digits in high and low. This causes misalignment. So set all to be the
-  # max of the widths of the inner legend viewport
-  # this should be doable through just parameters somewhere to a grob or viewport, but I could not quite make that work,
-  # hence this workaround on overwriting widths
-  #mwidth <- max(sapply(ll$children, function(x) x$children[[1]]$childrenvp$parent$layout$widths[2]))
-  #for (i in 1:length(ll$children)) {
-  #  ll$children[[i]]$children[[1]]$childrenvp$parent$layout$widths[2] <- unit(mwidth, "lines")
-  #}
+hasSidePanel <- function(ss) length(ss$legendOrder) > 0 || !is.null(ss$sliceIndicator)
 
-
-  if (is.null(ss$sliceIndicator)) {
-    return(ll)
-  } else {
-    vpWithIndicator <- viewport(layout=grid.layout(nrow=2, ncol=1,
-                                                   heights=unit(c(0.15,0.85), c("null", "null"))))
-    ind <- gTree(vp=viewport(layout.pos.row = 1, layout.pos.col = 1),
-                 children=gList(ss$sliceIndicator))
-    rest <- gTree(vp=viewport(layout.pos.row = 2, layout.pos.col = 1),
-                  children=gList(ll))
-    return(
-      gTree(vp=vpWithIndicator, children=gList(ind, rest))
-    )
-    #return(
-    #  gTree(vp=viewport(layout = grid.layout()), children=gList(rest))
-    #)
-
-  }
+# The side panel next to a slice series: the slice indicator in the top 15% and
+# the legends underneath. Either part can be absent.
+assembleSidePanel <- function(ss, gp = gpar()) {
+  legends <- assembleLegends(ss, gp)
+  if (is.null(ss$sliceIndicator)) return(legends)
+  children <- list(gTree(vp=viewport(layout.pos.row = 1), children=gList(ss$sliceIndicator)))
+  if (!is.null(legends))
+    children <- c(children, list(gTree(vp=viewport(layout.pos.row = 2), children=gList(legends))))
+  gTree(vp=viewport(layout=grid.layout(nrow=2, ncol=1, heights=unit(c(0.15, 0.85), "null"))),
+        children=do.call(gList, children))
 }
 
 grobifySliceSeries <- function(ss) {
@@ -624,7 +610,7 @@ grobify <- function(ssm, layout="column", titlePars = gpar(), legendPars = gpar(
 grobifyByRow <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol = NULL) {
   nseries <- length(ssm$ssl)
   haveTitles <- any(sapply(ssm$ssl, function(x) length(x$title))>0)
-  haveLegends <- any(sapply(ssm$ssl, function(x) length(x$legendOrder))>0)
+  haveLegends <- any(sapply(ssm$ssl, hasSidePanel))
 
   nrow <- nseries
   ncol <- 1 + haveTitles + haveLegends
@@ -643,10 +629,10 @@ grobifyByRow <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol = N
                                               layout.pos.col = column),
                                   children=gList(textGrob(ssm$ssl[[i]]$title, rot=90, gp = titlePars)))
     }
-    if (length(ssm$ssl[[i]]$legendOrder)>0) {
+    if (hasSidePanel(ssm$ssl[[i]])) {
       column <- column + 1
       gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.col = column, layout.pos.row = i),
-                                  children=gList(assembleLegends(ssm$ssl[[i]], gp = legendPars)))
+                                  children=gList(assembleSidePanel(ssm$ssl[[i]], gp = legendPars)))
     }
   }
 
@@ -698,10 +684,10 @@ grobifyByColumn <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol 
                      children=gList(grobifySliceSeries(ssm$ssl[[i]])))
     widths[[j]] <- unit(1, "null")
     j <- j+1
-    # add the legend(s) if present
-    if (length(ssm$ssl[[i]]$legendOrder) > 0) {
+    # add the legend(s) and/or indicator if present
+    if (hasSidePanel(ssm$ssl[[i]])) {
       gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.col = j, layout.pos.row = row),
-                       children=gList(assembleLegends(ssm$ssl[[i]], gp = legendPars)))
+                       children=gList(assembleSidePanel(ssm$ssl[[i]], gp = legendPars)))
       widths[[j]] <- unit(4, "lines")
       j <- j+1
     }
