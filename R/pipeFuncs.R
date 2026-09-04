@@ -702,7 +702,7 @@ grobifyByColumn <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol 
     if (length(ssm$ssl[[i]]$legendOrder) > 0) {
       gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.col = j, layout.pos.row = row),
                        children=gList(assembleLegends(ssm$ssl[[i]], gp = legendPars)))
-      widths[[j]] <- unit(4, "lines")
+      widths[[j]] <- legendWidth(ssm$ssl[[i]], legendPars)
       j <- j+1
     }
   }
@@ -741,6 +741,8 @@ grobifyByColumn <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol 
 #' }
 draw <- function(ssm, layout="column") {
   grid.newpage()
-  l <- grobify(ssm, layout=layout)
-  grid.draw(l)
+  # a small margin so that labels at the figure edge are not flush with the page
+  grid.draw(gTree(children=gList(grobify(ssm, layout=layout)),
+                  vp=viewport(width = 0.95, height = 0.95)))
+  invisible(NULL)
 }
