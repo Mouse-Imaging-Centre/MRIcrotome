@@ -94,20 +94,21 @@ sliceSeries(nrow = 1, ncol = 5, begin = 300, end = 200) %>%
   draw()
 ```
 
-Each slice is drawn as it is stored in the array: the first remaining axis
-runs left to right and the second runs bottom to top, so a coronal slice
-(`dimension = 2`) shows axis 1 across and axis 3 up. To flip or rotate the
-slices, reorder or permute the array before passing it in, and use the same
-transformed array for every layer of the series:
+In each slice the first remaining axis of the array runs left to right, and
+the second runs up the page, so a coronal slice (`dimension = 2`) shows axis 1
+across and axis 3 up. By default the up axis is reversed before drawing, as
+RMINC does, so the highest index is at the top and the axis reads bottom to
+top. Set `options(RMINC_flip_image = FALSE)` to keep the array order, which
+puts index 1 at the top and makes the axis read top to bottom.
+
+To flip or rotate the slices themselves, reorder or permute the array before
+you pass it in, and use the same transformed array for every layer of the
+series:
 
 ```r
 flipped <- anatVol[dim(anatVol)[1]:1, , ]   # mirror left-right
 rotated <- aperm(anatVol, c(3, 2, 1))       # swap the across and up axes
 ```
-
-By default the up axis of every slice is reversed so that the highest index
-is at the top, as RMINC does. Set `options(RMINC_flip_image = FALSE)` to keep
-the array order instead.
 
 ### Using grobify for grid integration
 
