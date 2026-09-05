@@ -2,10 +2,17 @@ Package: MRIcrotome
 Type: Package
 Title: Visualization Tools for 3D Volumes
 Version: 0.2.0
-Author: Jason Lerch
-Maintainer: Jason Lerch <jason.lerch@sickkids.ca>
-Description: Functions to create publication-ready figures from 3D volumes.
-License: BSD_3_clause
+Authors@R: person("Jason", "Lerch", email = "jason.lerch@sickkids.ca",
+                  role = c("aut", "cre"))
+Description: Builds publication-ready figures from 3D volumes such as MRI
+    scans. A figure is described as a pipeline: a series of slices through a
+    volume, an anatomical background, statistical or label overlays, contours,
+    titles, colour bar legends and slice indicators. Figures are drawn with
+    'grid' graphics, so they can also be returned as grobs and combined with
+    other 'grid' output.
+License: BSD_3_clause + file LICENSE
+URL: https://github.com/Mouse-Imaging-Centre/MRIcrotome
+BugReports: https://github.com/Mouse-Imaging-Centre/MRIcrotome/issues
 Encoding: UTF-8
 Imports: purrr,
          grid,
@@ -14,9 +21,7 @@ Imports: purrr,
          stats
 Suggests: knitr,
           rmarkdown,
-          RMINC,
           testthat (>= 3.0.0)
-Remotes: Mouse-Imaging-Centre/RMINC
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)
