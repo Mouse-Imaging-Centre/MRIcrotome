@@ -22,7 +22,7 @@ Load the required data from a file; for the moment, this contains two 3D volumes
 load("sliceData.RData")
 ```
 
-The best way to use MRIcrotome is through pipes; the pipe comes from _purrr_, which MRIcrotome already depends on (the full tidyverse works just as well). Also, the graphics subsystem is _grid_ graphics, so let's go ahead and load that as well.
+The best way to use MRIcrotome is through pipes; the `%>%` pipe comes from _magrittr_, which _purrr_ re-exports, and MRIcrotome already depends on _purrr_ (the full tidyverse works just as well). Also, the graphics subsystem is _grid_ graphics, so let's go ahead and load that as well.
 
 ```{r}
 library(purrr)
