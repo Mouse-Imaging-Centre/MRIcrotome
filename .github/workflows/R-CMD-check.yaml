@@ -31,6 +31,11 @@ jobs:
 
       - uses: r-lib/actions/setup-pandoc@v2
 
+      # CRAN builds the PDF manual, so check it here rather than finding Rd or
+      # LaTeX problems on submission. This is why the check below passes neither
+      # --no-manual nor build_args.
+      - uses: r-lib/actions/setup-tinytex@v2
+
       - uses: r-lib/actions/setup-r@v2
         with:
           r-version: ${{ matrix.config.r }}
@@ -45,5 +50,4 @@ jobs:
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
-          args: 'c("--no-manual", "--as-cran")'
-          build_args: 'c("--no-manual")'
+          args: 'c("--as-cran")'
