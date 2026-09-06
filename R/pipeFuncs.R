@@ -124,8 +124,10 @@ makeSlices <- function(ss, volume) {
 #'   by the user
 #' @param volume 3D matrix representing the volume from which to obtain slices.
 #'   Can be either numbers or hexadecimal colours
-#' @param low Inclusive lower end of colour scale. Can be NULL if volume is a matrix of hexadecimals.
-#' @param high Inclusive upper end of colour scale. Can be NULL if volume is a matrix of hexadecimals.
+#' @param low Inclusive lower end of colour scale. If NULL, the 2nd percentile
+#'   of the volume is used. Ignored if volume is a matrix of hexadecimals.
+#' @param high Inclusive upper end of colour scale. If NULL, the 98th percentile
+#'   of the volume is used. Ignored if volume is a matrix of hexadecimals.
 #' @param col The colour scale. Defaults to gray.
 #' @param alpha Value between 0 and 1, 0 being full transparent and 1 fully opaque.
 #' @param name Optional name.
@@ -172,10 +174,12 @@ anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL,
 #'   by the user
 #' @param volume 3D matrix representing the volume from which to obtain slices.
 #'   Can be either numbers or hexadecimal colours
-#' @param low Inclusive lower end of colour scale. Can be NULL if volume is a matrix of
-#'   hexadecimals. If symmetric=TRUE, then treat this as an absolute value (i.e.
-#'   2 would be >2 and < -2)
-#' @param high Inclusive upper end of colour scale.
+#' @param low Inclusive lower end of colour scale. If symmetric=TRUE, then treat
+#'   this as an absolute value (i.e. 2 would be >2 and < -2). If NULL, the 2nd
+#'   percentile of the volume (of its absolute values if symmetric=TRUE) is
+#'   used. Ignored if volume is a matrix of hexadecimals.
+#' @param high Inclusive upper end of colour scale. If NULL, the 98th percentile
+#'   of the volume (of its absolute values if symmetric=TRUE) is used.
 #' @param col The colour scale. See defaultCol for default.
 #' @param symmetric Whether the colour scale is symmetric.
 #' @param rCol The reverse colour scale. Used if symmetric=TRUE. See defaultRCol
@@ -271,7 +275,11 @@ slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent 
                   rCol=defaultRCol(), alpha=NULL,name=NULL, box=FALSE) {
   ss <- getSS(ssm)
   ss <- makeSlices(ss, volume)
-  #message(paste(ss$slices, collapse = " "))
+  # resolve the colour range once per volume so every slice and the legend agree
+  if (!is.character(volume)) {
+    r <- getRange(if (symmetric) abs(volume) else volume, low, high)
+    low <- r[1]; high <- r[2]
+  }
   sliceList <- list()
   counter <- 1
   sliceDims <- dim(volume)[-ss$dimension]
