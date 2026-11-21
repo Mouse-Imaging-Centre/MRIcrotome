@@ -821,6 +821,16 @@ grobifySliceSeries <- function(ss, sliceBg = "black") {
   gTree(children=do.call(gList, grobList), vp=ss$seriesVP)
 }
 
+# every slice series must have a layer before it can be drawn or measured; a
+# slice indicator alone is not enough
+checkHasLayers <- function(ssm) {
+  for (i in seq_along(ssm$ssl)) {
+    if (length(ssm$ssl[[i]]$order) == 0)
+      stop("Slice series ", i, " has no layers. Add anatomy(), overlay() or ",
+           "contours() after sliceSeries().")
+  }
+}
+
 #' Turn the slice series into grobs
 #'
 #' Takes the slice series, creates grobs where necessary, and returns a gTree.
@@ -855,11 +865,7 @@ grobifySliceSeries <- function(ss, sliceBg = "black") {
 #' grid::grid.draw(g)
 grobify <- function(ssm, layout="column", titlePars = gpar(), legendPars = gpar(), bgCol = NULL,
                     sliceBg = "black") {
-  for (i in seq_along(ssm$ssl)) {
-    if (length(ssm$ssl[[i]]$order) == 0)
-      stop("Slice series ", i, " has no layers. Add anatomy(), overlay() or ",
-           "contours() after sliceSeries().")
-  }
+  checkHasLayers(ssm)
   layout <- match.arg(layout, c("column", "row"))
   if (layout=="column") grobifyByColumn(ssm, titlePars, legendPars, bgCol, sliceBg)
   else grobifyByRow(ssm, titlePars, legendPars, bgCol, sliceBg)
