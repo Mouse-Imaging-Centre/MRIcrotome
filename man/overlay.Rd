@@ -31,12 +31,14 @@ hexadecimals. If symmetric=TRUE, then treat this as an absolute value (i.e.
 
 \item{high}{Inclusive upper end of colour scale.}
 
-\item{col}{The colour scale. See defaultCol for default.}
+\item{col}{The colour scale. Defaults to \code{\link{defaultCol}()}, a
+red-yellow ramp that can be changed with \code{options(MRIcrotomeCol = ...)}.}
 
 \item{symmetric}{Whether the colour scale is symmetric.}
 
-\item{rCol}{The reverse colour scale. Used if symmetric=TRUE. See defaultRCol
-for default.}
+\item{rCol}{The reverse colour scale. Used if symmetric=TRUE. Defaults to
+\code{\link{defaultRCol}()}, a blue-turquoise ramp that can be changed
+with \code{options(MRIcrotomeRcol = ...)}.}
 
 \item{alpha}{Value between 0 and 1, 0 being full transparent and 1 fully opaque.}
 
