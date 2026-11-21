@@ -157,6 +157,21 @@ layout. In row layout every slice series gets one row of equal height, so
 give the series the same `ncol` and similar slice dimensions when they should
 line up.
 
+`figureSize()` does this calculation for you, legends and titles included.
+Give it the figure and the width (or height) that you want, in inches:
+
+```r
+fig <- sliceSeries(nrow = 5, ncol = 5, begin = 100, end = 350) %>%
+  anatomy(anatVol, low = 700, high = 1400) %>%
+  overlay(stats, low = 2, high = 6, symmetric = TRUE) %>%
+  legend("t-statistics")
+size <- figureSize(fig, width = 7)
+png("figure.png", width = size["width"], height = size["height"],
+    units = "in", res = 300)
+draw(fig)
+dev.off()
+```
+
 ## Key functions
 
 | Function | Description |
@@ -169,6 +184,7 @@ line up.
 | `addtitle()` | Add a title to a slice series |
 | `draw()` | Render the figure to the current device |
 | `grobify()` | Convert the figure to a `gTree` for grid integration |
+| `figureSize()` | Device size that fits the figure without padding |
 | `anatomySliceIndicator()` | Add an anatomy-based slice position indicator |
 | `contourSliceIndicator()` | Add a contour-based slice position indicator |
 

@@ -1,0 +1,28 @@
+# figureSize() gives a device size that fits the slices (from issue #10)
+test_that("figureSize() is consistent in both directions and both layouts", {
+  v <- testVolumes()
+  fig <- sliceSeries(nrow = 2, ncol = 3, begin = 4, end = 20) %>%
+    anatomy(v$anat, 0, 3000) %>% overlay(v$stats, 2, 5) %>% legend("t")
+  s <- figureSize(fig, width = 7)
+  expect_named(s, c("width", "height"))
+  expect_equal(unname(figureSize(fig, height = s[["height"]])["width"]), 7)
+  # wider devices are taller; the legend has a fixed width, so not in proportion
+  expect_gt(figureSize(fig, width = 14)[["height"]], 2 * s[["height"]])
+
+  row <- fig %>% sliceSeries() %>% anatomy() %>% addtitle("B")
+  r <- figureSize(row, width = 7, layout = "row")
+  expect_equal(figureSize(row, width = 14, layout = "row")[["height"]], 2 * r[["height"]])
+  expect_equal(unname(figureSize(row, height = r[["height"]], layout = "row")["width"]), 7)
+  # two series of 2 x 3 slices of 20 x 28 voxels, each row 60% of the width
+  expect_equal(r[["height"]], 7 * 2 * 0.7 * (2 * 28) / (3 * 20))
+})
+
+test_that("figureSize() checks its arguments", {
+  v <- testVolumes()
+  fig <- sliceSeries(nrow = 1, ncol = 2) %>% anatomy(v$anat, 0, 3000)
+  expect_error(figureSize(fig), "either 'width' or 'height'")
+  expect_error(figureSize(fig, width = 7, height = 5), "either 'width' or 'height'")
+  expect_error(figureSize(fig, width = 0), "positive")
+  expect_error(figureSize(fig, width = 7, layout = "grid"), "should be one of")
+  expect_error(figureSize(sliceSeries(nrow = 1), width = 7), "has no layers")
+})
