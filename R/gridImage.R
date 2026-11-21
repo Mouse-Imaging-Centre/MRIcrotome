@@ -209,8 +209,12 @@ scaleSliceToPalette <- function(slice, low, high, palette){
     return(slice)
 
   dims <- dim(slice)
+  # with low == high, scaleSlice() has set every shown value to 0; keep them
+  # (they get the first colour) instead of dividing by zero
+  width <- abs(high - low)
+  if (width == 0) width <- 1
   slice <- #Scale to 0-1
-    slice / abs(high - low)
+    slice / width
 
   maxima <- which(slice == 1)
   slice[maxima] <- slice[maxima] - .Machine$double.eps

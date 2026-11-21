@@ -445,6 +445,10 @@ slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent 
   if (!is.character(volume)) {
     r <- getRange(if (symmetric) abs(volume) else volume, low, high)
     low <- r[1]; high <- r[2]
+    if (low == high)
+      warning("low and high are both ", low, ", so the colour scale has only one ",
+              "value: voxels at or above it get the first colour of the scale.",
+              call. = FALSE)
   }
   sliceList <- list()
   counter <- 1
