@@ -16,7 +16,9 @@ NULL, in which case the colour bar is shown without a description.}
 \item{global}{If TRUE, and the figure is drawn with \code{layout = "row"},
 the legend spans all rows as one shared legend for the whole figure
 instead of sitting beside its own slice series. In column layout a legend
-already spans the full height, so this has no effect there.}
+already spans the full height, so this has no effect there. All legends
+of a slice series share one side panel, so if any \code{legend()} call of
+the series has \code{global = TRUE}, the whole panel is global.}
 
 \item{digits}{The smallest number of significant digits in the numbers of a
 colour bar, from 1 to 22. Defaults to 3. The numbers are formatted
@@ -29,7 +31,9 @@ The slices series for continuation down the pipe.
 }
 \description{
 Adds a legend based on the current slice series. Colour bars, contours, etc.,
-are taken from the immediately preceding element.
+are taken from the immediately preceding element. A second \code{legend()}
+call for the same element replaces its description and \code{digits}; it
+does not add a second legend.
 }
 \examples{
 v <- exampleVolumes()
