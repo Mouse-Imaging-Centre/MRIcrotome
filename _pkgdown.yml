@@ -1,0 +1,34 @@
+url: https://mouse-imaging-centre.github.io/MRIcrotome/
+
+template:
+  bootstrap: 5
+
+reference:
+  - title: Build a figure
+    desc: Start a slice series, then add layers, legends and titles.
+    contents:
+      - sliceSeries
+      - anatomy
+      - overlay
+      - contours
+      - legend
+      - addtitle
+  - title: Slice indicators
+    contents:
+      - anatomySliceIndicator
+      - contourSliceIndicator
+  - title: Draw
+    contents:
+      - draw
+      - grobify
+  - title: Helpers
+    contents:
+      - maskBounds
+      - defaultCol
+      - defaultRCol
+      - exampleVolumes
+
+articles:
+  - title: Articles
+    contents:
+      - figures
