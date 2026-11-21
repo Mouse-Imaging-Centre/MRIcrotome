@@ -3,9 +3,22 @@
 on:
   push:
     branches: [main, master]
+    # changes that cannot change the result of R CMD check (as in RMINC's CI)
+    paths-ignore:
+      - 'docs/**'
+      - '**/README*'
+      - 'cran-comments.md'
+      - '_pkgdown.yml'
+      - '.github/workflows/pkgdown.yaml'
   # no branch filter, so that stacked PRs (based on another PR's branch) are
   # checked too
   pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '**/README*'
+      - 'cran-comments.md'
+      - '_pkgdown.yml'
+      - '.github/workflows/pkgdown.yaml'
   # run by hand, e.g. to check an old PR again after its runs have expired
   workflow_dispatch:
 
@@ -54,6 +67,16 @@ jobs:
       - name: Install LaTeX fonts for the manual
         run: tlmgr install courier inconsolata makeindex
 
+      # HTML Tidy lets R CMD check validate the HTML manual; without it the
+      # check skips that step with a NOTE (as in RMINC's CI)
+      - name: Install HTML Tidy (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends tidy
+
+      - name: Install HTML Tidy (macOS)
+        if: runner.os == 'macOS'
+        run: brew install tidy-html5
+
       - uses: r-lib/actions/setup-r@v2
         with:
           r-version: ${{ matrix.config.r }}
@@ -70,3 +93,16 @@ jobs:
         with:
           upload-snapshots: true
           args: 'c("--as-cran")'
+
+      # R CMD check passes when a test gives a warning, but a new warning
+      # (often from a new R or package version) should be seen; RMINC's CI
+      # fails on test warnings too
+      - name: Fail on test warnings
+        shell: bash
+        run: |
+          out=check/MRIcrotome.Rcheck/tests/testthat.Rout
+          grep -E 'FAIL [0-9]+ \| WARN [0-9]+' "$out" | tail -1
+          if grep -qE 'WARN [1-9]' "$out"; then
+            echo "::error::The tests gave warnings; see $out in the check output"
+            exit 1
+          fi
