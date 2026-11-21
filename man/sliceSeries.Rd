@@ -36,14 +36,19 @@ the slices go in one row (or in the rows of the previous series).}
 
 \item{end}{Last slice. Can be NULL if slices explicitly specified. A
 negative value counts back from the last slice of the volume, as in
-RMINC's \code{mincPlotSliceSeries()}: \code{begin = 10, end = -10}
+RMINC's \code{mincPlotSliceSeries()}: the last slice is
+\code{dim(volume)[dimension] + end}, so \code{begin = 11, end = -10}
 leaves out 10 slices at each side. A negative \code{end} carries over to
 later series as a negative value, so each series gets the same margin,
-also along a dimension with another number of slices.}
+also along a dimension with another number of slices. As with positive
+values, a \code{begin} after the end gives the slices in the opposite
+order (RMINC stops instead).}
 
 \item{rotate}{Rotate each slice counterclockwise by 0 (the default), 90,
 180 or 270 degrees. For 90 and 270 the slices change from wide to tall,
-and the layout of the series follows.}
+and the layout of the series follows. With
+\code{options(RMINC_flip_image = FALSE)} the image is drawn upside down,
+so the same value turns it clockwise.}
 
 \item{flip}{Mirror each slice after the rotation: \code{"none"} (the
 default), \code{"horizontal"} (left and right change places) or
