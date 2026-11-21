@@ -29,6 +29,9 @@ validateVolume <- function(volume) {
 #' @param ssm Provided as part of an ongoing pipe, not usually specified by user
 #' @param slices A vector of integers representing which slices to use. Can be
 #'   NULL, in which case nrow and ncol together with begin and end are used.
+#'   If you give \code{slices} and only one of \code{nrow} or \code{ncol},
+#'   the other is calculated from the number of slices. If you give neither,
+#'   the slices go in one row (or in the rows of the previous series).
 #' @param nrow Rows in the slice series. Set to 1 if NULL and ncol specified.
 #' @param ncol Columns in the slice series. Set to 1 if NULL and nrow specified.
 #' @param dimension Dimension as integer (1, 2, or 3) for slice series.
@@ -63,6 +66,15 @@ sliceSeries <- function(ssm=NULL,
   if (!is.null(dimension) && (!is.numeric(dimension) || length(dimension) != 1 ||
                               is.na(dimension) || !(dimension %in% 1:3)))
     stop("'dimension' must be 1, 2, or 3")
+
+  # with explicit slices, calculate the missing nrow or ncol from their number
+  if (!is.null(slices)) {
+    n <- length(slices)
+    if (is.null(nrow) && is.null(ncol))
+      nrow <- if (is.null(ssm)) 1 else ssm$ssl[[ssm$seriesCounter]]$nrow
+    if (is.null(ncol)) ncol <- ceiling(n / nrow)
+    if (is.null(nrow)) nrow <- ceiling(n / ncol)
+  }
 
   # ssm (the first arg) is provided if this is part of an ongoing pipe, but should be
   # null if this is the first initialization
