@@ -429,6 +429,14 @@ addtitle <- function(ssm, title, side = "right") {
 #' call for the same element replaces its description and \code{digits}; it
 #' does not add a second legend.
 #'
+#' @section Name clash with the graphics package:
+#' When MRIcrotome is attached (\code{library(MRIcrotome)}), this
+#' \code{legend()} masks \code{\link[graphics]{legend}}, which adds a
+#' legend to a base graphics plot. R says so when the package is attached.
+#' To use the base graphics function in the same session, call it as
+#' \code{graphics::legend()}. Code that does not attach MRIcrotome can call
+#' this one as \code{MRIcrotome::legend()}.
+#'
 #' @param ssm The slice series info, usually passed along the pipe and specified
 #'   by the user
 #' @param description The text that will be used to describe the legend. Can be
