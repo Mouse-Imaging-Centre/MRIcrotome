@@ -20,11 +20,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Jason Lerch \email{jason.lerch@sickkids.ca}
+\strong{Maintainer}: Jason Lerch \email{jason.lerch@sickkids.ca} [copyright holder]
 
 Authors:
 \itemize{
-  \item Jason Lerch \email{jason.lerch@sickkids.ca}
+  \item Jason Lerch \email{jason.lerch@sickkids.ca} [copyright holder]
 }
 
 }
