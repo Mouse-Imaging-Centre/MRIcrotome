@@ -590,7 +590,7 @@ grobifySliceSeries <- function(ss) {
   #}
 }
 
-#' Turn the slice series into grobs.
+#' Turn the slice series into grobs
 #'
 #' Takes the slice series, creates grobs where necessary, and returns a gTree.
 #' Can then be incorporated into other grid functions.
