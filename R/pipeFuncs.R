@@ -37,6 +37,18 @@ validateVolume <- function(volume) {
 #' @param dimension Dimension as integer (1, 2, or 3) for slice series.
 #' @param begin First slice. Can be NULL if slices explicitly specified.
 #' @param end Last slice. Can be NULL if slices explicitly specified.
+#' @param rotate Rotate each slice counterclockwise by 0 (the default), 90,
+#'   180 or 270 degrees. For 90 and 270 the slices change from wide to tall,
+#'   and the layout of the series follows.
+#' @param flip Mirror each slice after the rotation: \code{"none"} (the
+#'   default), \code{"horizontal"} (left and right change places) or
+#'   \code{"vertical"} (top and bottom change places).
+#'
+#'   Like the other arguments, \code{rotate} and \code{flip} carry over to
+#'   later series in the pipe unless you give them again. They apply to each
+#'   layer of the series (anatomy, overlays and contours), so the layers stay
+#'   aligned. Slice indicators are not turned: they show a view along another
+#'   dimension.
 #'
 #' @return Returns the slices series info for passing along the pipe.
 #' @export
@@ -53,13 +65,22 @@ validateVolume <- function(volume) {
 #' sliceSeries(nrow = 1, slices = c(15, 25, 35)) %>%
 #'   anatomy(v$anatomy, low = 600, high = 1400) %>%
 #'   draw()
+#'
+#' # the same slices turned a quarter turn, then mirrored
+#' sliceSeries(nrow = 1, slices = c(15, 25, 35), rotate = 90) %>%
+#'   anatomy(v$anatomy, low = 600, high = 1400) %>%
+#'   sliceSeries(flip = "horizontal") %>%
+#'   anatomy() %>%
+#'   draw()
 sliceSeries <- function(ssm=NULL,
                         slices=NULL,
                         nrow=NULL,
                         ncol=NULL,
                         dimension=NULL,
                         begin=NULL,
-                        end=NULL) {
+                        end=NULL,
+                        rotate=NULL,
+                        flip=NULL) {
 
   checkCount <- function(x, arg) {
     if (!is.null(x) && (!is.numeric(x) || length(x) != 1 || is.na(x) || x < 1 || x != round(x)))
@@ -70,6 +91,10 @@ sliceSeries <- function(ssm=NULL,
   if (!is.null(dimension) && (!is.numeric(dimension) || length(dimension) != 1 ||
                               is.na(dimension) || !(dimension %in% 1:3)))
     stop("'dimension' must be 1, 2, or 3")
+  if (!is.null(rotate) && (!is.numeric(rotate) || length(rotate) != 1 ||
+                           !(rotate %in% c(0, 90, 180, 270))))
+    stop("'rotate' must be 0, 90, 180 or 270")
+  if (!is.null(flip)) flip <- match.arg(flip, c("none", "horizontal", "vertical"))
 
   # with explicit slices, calculate the missing nrow or ncol from their number
   if (!is.null(slices)) {
@@ -107,12 +132,15 @@ sliceSeries <- function(ssm=NULL,
 
   # initialize sliceSeries list; in all cases use the previous sliceSeries' values
   # if they were not specified here
+  prev <- if (ssm$seriesCounter > 1) ssm$ssl[[ssm$seriesCounter-1]] else list()
   l <- list(nrow=nrow,
             ncol=ncol,
             dimension=if (is.null(dimension)) ssm$ssl[[ssm$seriesCounter-1]]$dimension else dimension,
             slices=slices,
             begin=if (is.null(begin) && ssm$seriesCounter>1) ssm$ssl[[ssm$seriesCounter-1]]$begin else begin,
             end=if (is.null(end) && ssm$seriesCounter>1) ssm$ssl[[ssm$seriesCounter-1]]$end else end,
+            rotate=if (is.null(rotate)) prev$rotate %||% 0 else rotate,
+            flip=if (is.null(flip)) prev$flip %||% "none" else flip,
             seriesVP=NULL, #seriesVP,
             order=list(),
             legendInfo=list(),
@@ -163,7 +191,7 @@ maskBounds <- function(mask, dimension, padding = 10) {
 reservedLayerNames <- c("nrow", "ncol", "dimension", "slices", "begin", "end",
                         "seriesVP", "order", "legendInfo", "legendOrder",
                         "sliceIndicator", "title", "titleSide", "legendGlobal",
-                        "anatomySpec")
+                        "anatomySpec", "rotate", "flip")
 
 # The name under which a new layer is stored. A name that the user gives must
 # be new in the series; with no name, use the default if it is free, otherwise
@@ -204,7 +232,7 @@ putSS <- function(ssm, ss) {
 makeSlices <- function(ss, volume) {
   validateVolume(volume)
   if (is.null(ss$seriesVP)) {
-    sliceDims <- dim(volume)[-ss$dimension]
+    sliceDims <- seriesSliceDims(ss, volume)
     gl <- grid.layout(nrow=ss$nrow, ncol=ss$ncol,
                       widths=rep(sliceDims[1], ss$ncol),
                       heights=rep(sliceDims[2], ss$nrow), respect = TRUE)
@@ -467,11 +495,13 @@ slice <- function(ssm, volume, low, high, col, underTransparent = FALSE, symmetr
   }
   sliceList <- list()
   counter <- 1
-  sliceDims <- dim(volume)[-ss$dimension]
+  sliceDims <- seriesSliceDims(ss, volume)
   for (i in 1:ss$nrow) {
     for (j in 1:ss$ncol) {
       sliceList[[counter]] <- sliceImage(volume, ss$dimension,low,high,col=col,
                                          slice=ss$slices[counter],
+                                         rotate = ss$rotate %||% 0,
+                                         flip = ss$flip %||% "none",
                                          underTransparent = underTransparent,
                                          symmetric = symmetric,
                                          rCol = rCol, alpha=alpha, box=box,
@@ -550,11 +580,13 @@ contours <- function(ssm, volume, levels=NULL, col="red", lty=1, lwd=1, name="co
   }
   sliceList <- list()
   counter <- 1
-  sliceDims <- dim(volume)[-ss$dimension]
+  sliceDims <- seriesSliceDims(ss, volume)
   for (i in 1:ss$nrow) {
     for (j in 1:ss$ncol) {
       sliceList[[counter]] <- sliceContours(volume, ss$dimension,levels = levels, col=col, lty=lty, lwd=lwd,
                                          slice=ss$slices[counter],
+                                         rotate = ss$rotate %||% 0,
+                                         flip = ss$flip %||% "none",
                                          vp=viewport(layout.pos.row = i,
                                                      layout.pos.col = j,
                                                      xscale=c(0, sliceDims[1]),

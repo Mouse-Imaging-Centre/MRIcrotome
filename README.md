@@ -101,13 +101,19 @@ RMINC does, so the highest index is at the top and the axis reads bottom to
 top. Set `options(RMINC_flip_image = FALSE)` to keep the array order, which
 puts index 1 at the top and makes the axis read top to bottom.
 
-To flip or rotate the slices themselves, reorder or permute the array before
-you pass it in, and use the same transformed array for every layer of the
-series:
+To rotate or mirror the slices themselves, use the `rotate` (0, 90, 180 or
+270 degrees counterclockwise) and `flip` (`"horizontal"` or `"vertical"`)
+arguments of `sliceSeries()`. They apply to every layer of the series, so
+anatomy, overlays and contours stay aligned, and they carry over to later
+series in the pipe:
 
 ```r
-flipped <- anatVol[dim(anatVol)[1]:1, , ]   # mirror left-right
-rotated <- aperm(anatVol, c(3, 2, 1))       # swap the across and up axes
+sliceSeries(nrow = 1, ncol = 5, begin = 200, end = 300, rotate = 90) %>%
+  anatomy(anatVol, low = 700, high = 1400) %>%
+  overlay(stats, low = 2, high = 6, symmetric = TRUE) %>%
+  sliceSeries(flip = "horizontal") %>%   # still rotated, and mirrored
+  anatomy() %>%
+  draw()
 ```
 
 ### Using grobify for grid integration

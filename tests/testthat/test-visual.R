@@ -55,3 +55,21 @@ test_that("slice indicators", {
       draw()
   })
 })
+
+test_that("rotated and mirrored series", {
+  expect_figure("rotate-flip", function() {
+    sliceSeries(nrow = 1, ncol = 3, begin = 6, end = 18) %>%
+      anatomy(v$anat, low = 0, high = 3000) %>%
+      contours(v$labels, labels = 2, col = "magenta") %>%
+      addtitle("none") %>%
+      sliceSeries(rotate = 90) %>%
+      anatomy() %>%
+      contours(v$labels, labels = 2, col = "magenta") %>%
+      addtitle("rotate = 90") %>%
+      sliceSeries(rotate = 0, flip = "horizontal") %>%
+      anatomy() %>%
+      contours(v$labels, labels = 2, col = "magenta") %>%
+      addtitle("flip") %>%
+      draw(layout = "row")
+  })
+})

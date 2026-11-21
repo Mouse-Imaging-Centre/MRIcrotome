@@ -12,9 +12,11 @@ sliceImage <- function(volume,
                        alpha=NULL,
                        box=FALSE,
                        interpolate = TRUE,
-                       vp=NULL) {
+                       vp=NULL,
+                       rotate = 0,
+                       flip = "none") {
 
-  s <- getSlice(volume, slice, dimension)
+  s <- getSlice(volume, slice, dimension, rotate, flip)
   if (reverse) {
     m <- -1
   }
@@ -60,7 +62,8 @@ sliceImage <- function(volume,
                                high=high,
                                reverse=TRUE,
                                underTransparent=TRUE,
-                               col=rCol, vp=vp, interpolate = interpolate)))
+                               col=rCol, vp=vp, interpolate = interpolate,
+                               rotate = rotate, flip = flip)))
   }
   gList(g)
 }
@@ -89,9 +92,11 @@ sliceContours <- function(volume,
                           vp=NULL,
                           col="white",
                           lty=1,
-                          lwd=1) {
+                          lwd=1,
+                          rotate=0,
+                          flip="none") {
   if (is.null(levels)) stop("must specify levels")
-  s <- getSlice(volume, slice, dimension)
+  s <- getSlice(volume, slice, dimension, rotate, flip)
   d <- dim(s)
 
   colVector <- col[floor(seq.int(from=1, to=length(col), length.out = length(levels)))]
@@ -214,11 +219,35 @@ scaleSliceToPalette <- function(slice, low, high, palette){
   return(slice)
 }
 
-# one slice of a 3D volume (validateVolume() has checked the volume)
-getSlice <- function(volume, slice, dimension) {
-  switch(as.character(dimension),
-         "1" = volume[slice, , ],
-         "2" = volume[, slice, ],
-         "3" = volume[, , slice],
-         stop("dimension must be 1, 2, or 3"))
+# one slice of a 3D volume (validateVolume() has checked the volume), turned
+# as sliceSeries(rotate =, flip =) asks
+getSlice <- function(volume, slice, dimension, rotate = 0, flip = "none") {
+  s <- switch(as.character(dimension),
+              "1" = volume[slice, , ],
+              "2" = volume[, slice, ],
+              "3" = volume[, , slice],
+              stop("dimension must be 1, 2, or 3"))
+  orientSlice(s, rotate, flip)
+}
+
+# Rotate a slice counterclockwise by `rotate` degrees, then mirror it. Rows of
+# the matrix run left to right and columns run up the page (as drawn with the
+# default RMINC_flip_image = TRUE).
+orientSlice <- function(m, rotate = 0, flip = "none") {
+  w <- nrow(m); h <- ncol(m)
+  m <- switch(as.character(rotate),
+              "0" = m,
+              "90" = t(m)[h:1, , drop = FALSE],
+              "180" = m[w:1, h:1, drop = FALSE],
+              "270" = t(m)[, w:1, drop = FALSE])
+  switch(flip,
+         none = m,
+         horizontal = m[nrow(m):1, , drop = FALSE],
+         vertical = m[, ncol(m):1, drop = FALSE])
+}
+
+# width and height, in voxels, of the slices of a series as they are drawn
+seriesSliceDims <- function(ss, volume) {
+  d <- dim(volume)[-ss$dimension]
+  if ((ss$rotate %||% 0) %in% c(90, 270)) rev(d) else d
 }
