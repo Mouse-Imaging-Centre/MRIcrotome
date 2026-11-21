@@ -41,12 +41,13 @@ Takes the slice series, creates grobs where necessary, and returns a gTree.
 Can then be incorporated into other grid functions.
 }
 \examples{
-\dontrun{
-sliceSeriesGridTree <- sliceSeries(nrow=5, begin=150, end=250) \%>\%
-  anatomy(anatVol, low=700, high=1400) \%>\%
-  overlay(stats, 2, 6, symmetric = T, alpha=0.1) \%>\%
+v <- exampleVolumes()
+g <- sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) \%>\%
+  anatomy(v$anatomy, low = 600, high = 1400) \%>\%
+  overlay(v$stats, low = 2, high = 6, symmetric = TRUE) \%>\%
   legend("t-statistics") \%>\%
-  anatomySliceIndicator(anatVol, 700, 1400) \%>\%
+  anatomySliceIndicator(v$anatomy, 600, 1400) \%>\%
   grobify()
-}
+grid::grid.newpage()
+grid::grid.draw(g)
 }

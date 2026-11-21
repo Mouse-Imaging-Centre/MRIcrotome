@@ -41,11 +41,15 @@ Starts a new slices series, sets dimensions, slices to use, and rows and
 columns.
 }
 \examples{
-\dontrun{
-sliceSeries(nrow = 1, begin=200, end=300) \%>\%
-  anatomy(anatVol, low=700, high=1400) \%>\%
-  overlay(stats, low=2, high=6, symmetric = T) \%>\%
+v <- exampleVolumes()
+sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) \%>\%
+  anatomy(v$anatomy, low = 600, high = 1400) \%>\%
+  overlay(v$stats, low = 2, high = 6, symmetric = TRUE) \%>\%
   legend("t-statistics") \%>\%
   draw()
-}
+
+# explicit slices; ncol is calculated from their number
+sliceSeries(nrow = 1, slices = c(15, 25, 35)) \%>\%
+  anatomy(v$anatomy, low = 600, high = 1400) \%>\%
+  draw()
 }

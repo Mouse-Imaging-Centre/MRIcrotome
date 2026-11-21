@@ -54,18 +54,19 @@ Adds contours to every slice in the series, with control over the contour
 levels and attributes.
 }
 \examples{
-\dontrun{
-sliceSeries(nrow = 1, begin=200, end=300) \%>\%
-  anatomy(anatVol, low=700, high=1400) \%>\%
-  overlay(stats, low=2, high=6, symmetric = T) \%>\%
+v <- exampleVolumes()
+sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) \%>\%
+  anatomy(v$anatomy, low = 600, high = 1400) \%>\%
+  overlay(v$stats, low = 2, high = 6, symmetric = TRUE) \%>\%
   legend("t-statistics") \%>\%
-  contours(abs(stats), levels=c(3,5), lwd=2, lty=c(3,1), col="green") \%>\%
+  contours(abs(v$stats), levels = c(3, 5), lwd = 2, lty = c(3, 1), col = "green") \%>\%
+  legend("|t|") \%>\%
   draw()
 
-# outline the hippocampus from an atlas of labels
-sliceSeries(nrow = 1, begin=200, end=300) \%>\%
-  anatomy(anatVol, low=700, high=1400) \%>\%
-  contours(atlas, labels=hippocampusLabels, col="magenta") \%>\%
+# outline label 1 (dark tissue) of a volume of labels
+sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) \%>\%
+  anatomy(v$anatomy, low = 600, high = 1400) \%>\%
+  contours(v$labels, labels = 1, col = "magenta") \%>\%
+  legend("dark tissue") \%>\%
   draw()
-}
 }

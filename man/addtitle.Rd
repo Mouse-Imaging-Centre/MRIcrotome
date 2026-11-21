@@ -23,15 +23,14 @@ The slices series for continuation down the pipe.
 Add a title to a slice series
 }
 \examples{
-\dontrun{
-sliceSeries(nrow = 8, begin=100, end=350) \%>\%
-  anatomy(anatVol, low=700, high=1400) \%>\%
+v <- exampleVolumes()
+sliceSeries(nrow = 4, begin = 10, end = 40) \%>\%
+  anatomy(v$anatomy, low = 600, high = 1400) \%>\%
   addtitle("Anatomy") \%>\%
   sliceSeries() \%>\%
   anatomy() \%>\%
-  overlay(stats, low=2, high=6, symmetric = T) \%>\%
+  overlay(v$stats, low = 2, high = 6, symmetric = TRUE) \%>\%
   addtitle("Stats") \%>\%
   legend("t-statistics") \%>\%
   draw()
-}
 }

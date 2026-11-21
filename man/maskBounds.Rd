@@ -22,9 +22,11 @@ specified dimension, with optional padding. Useful for setting the
 \code{begin} and \code{end} arguments of \code{\link{sliceSeries}}.
 }
 \examples{
-\dontrun{
-bounds <- maskBounds(binaryMask, dimension = 2, padding = 10)
-sliceSeries(nrow = 5, begin = bounds["begin"], end = bounds["end"],
-            dimension = 2) \\%>\\% ...
-}
+v <- exampleVolumes()
+darkTissue <- v$labels == 1
+bounds <- maskBounds(darkTissue, dimension = 2, padding = 2)
+bounds
+sliceSeries(nrow = 1, ncol = 4, begin = bounds["begin"], end = bounds["end"]) \%>\%
+  anatomy(v$anatomy, low = 600, high = 1400) \%>\%
+  draw()
 }

@@ -32,28 +32,27 @@ Adds a legend based on the current slice series. Colour bars, contours, etc.,
 are taken from the immediately preceding element.
 }
 \examples{
-\dontrun{
-sliceSeries(nrow = 8, begin=100, end=350) \%>\%
-  anatomy(anatVol, low=700, high=1400) \%>\%
+v <- exampleVolumes()
+sliceSeries(nrow = 4, begin = 10, end = 40) \%>\%
+  anatomy(v$anatomy, low = 600, high = 1400) \%>\%
   addtitle("Anatomy") \%>\%
   sliceSeries() \%>\%
   anatomy() \%>\%
-  overlay(stats, low=2, high=6, symmetric = T) \%>\%
+  overlay(v$stats, low = 2, high = 6, symmetric = TRUE) \%>\%
   addtitle("Stats") \%>\%
   legend("t-statistics") \%>\%
   draw()
 
 # one colour bar for three views drawn as rows
-sliceSeries(nrow = 1, ncol = 5, begin = 100, end = 350, dimension = 2) \%>\%
-  anatomy(anatVol, low=700, high=1400) \%>\%
-  overlay(stats, low=2, high=6, symmetric = T) \%>\%
+sliceSeries(nrow = 1, ncol = 5, begin = 10, end = 40, dimension = 2) \%>\%
+  anatomy(v$anatomy, low = 600, high = 1400) \%>\%
+  overlay(v$stats, low = 2, high = 6, symmetric = TRUE) \%>\%
   sliceSeries(dimension = 1) \%>\%
-  anatomy(anatVol, low=700, high=1400) \%>\%
-  overlay(stats, low=2, high=6, symmetric = T) \%>\%
+  anatomy() \%>\%
+  overlay(v$stats, low = 2, high = 6, symmetric = TRUE) \%>\%
   sliceSeries(dimension = 3) \%>\%
-  anatomy(anatVol, low=700, high=1400) \%>\%
-  overlay(stats, low=2, high=6, symmetric = T) \%>\%
+  anatomy() \%>\%
+  overlay(v$stats, low = 2, high = 6, symmetric = TRUE) \%>\%
   legend("t-statistics", global = TRUE) \%>\%
   draw(layout = "row")
-}
 }

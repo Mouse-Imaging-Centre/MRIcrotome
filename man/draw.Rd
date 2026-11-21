@@ -25,11 +25,15 @@ draws the assembled figure including all slice series, overlays, contours,
 legends, and titles.
 }
 \examples{
-\dontrun{
-sliceSeries(nrow = 1, begin=200, end=300) \%>\%
-  anatomy(anatVol, low=700, high=1400) \%>\%
-  overlay(stats, low=2, high=6, symmetric = T) \%>\%
+v <- exampleVolumes()
+sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) \%>\%
+  anatomy(v$anatomy, low = 600, high = 1400) \%>\%
+  overlay(v$stats, low = 2, high = 6, symmetric = TRUE) \%>\%
   legend("t-statistics") \%>\%
   draw()
-}
+
+# a white page with no black rectangle behind the slices
+sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) \%>\%
+  anatomy(v$anatomy, low = 600, high = 1400) \%>\%
+  draw(sliceBg = NA)
 }

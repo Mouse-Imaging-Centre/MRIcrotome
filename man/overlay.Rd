@@ -63,11 +63,17 @@ Adds overlay slices; usually used for statistics, but can be anything.
 Differs from anatomy in that the background is transparent.
 }
 \examples{
-\dontrun{
-sliceSeries(nrow = 1, begin=200, end=300) \%>\%
-  anatomy(anatVol, low=700, high=1400) \%>\%
-  overlay(stats, low=2, high=6, symmetric = T) \%>\%
+v <- exampleVolumes()
+sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) \%>\%
+  anatomy(v$anatomy, low = 600, high = 1400) \%>\%
+  overlay(v$stats, low = 2, high = 6, symmetric = TRUE) \%>\%
   legend("t-statistics") \%>\%
   draw()
-}
+
+# labels as an overlay, with sharp edges
+sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) \%>\%
+  anatomy(v$anatomy, low = 600, high = 1400) \%>\%
+  overlay(v$labels, low = 1, high = 2, col = c("blue", "orange"),
+          alpha = 0.4, interpolate = FALSE) \%>\%
+  draw()
 }
