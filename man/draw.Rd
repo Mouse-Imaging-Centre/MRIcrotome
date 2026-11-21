@@ -10,7 +10,8 @@ draw(ssm, layout = "column")
 \item{ssm}{The slice series info, usually passed along the pipe and specified
 by the user}
 
-\item{layout}{either "column" or "row" for how to layout the figure}
+\item{layout}{Either \code{"column"} (the default) or \code{"row"}: how to
+lay out the figure.}
 }
 \value{
 invisible NULL
