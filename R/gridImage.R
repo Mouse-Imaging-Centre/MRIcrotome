@@ -85,6 +85,14 @@ setAlpha <- function(colours, alpha) {
   rgb(m[1, ], m[2, ], m[3, ], alpha = floor(alpha * 255), maxColorValue = 255)
 }
 
+# Native y position for a y position measured from the first voxel row.
+# sliceImage() puts the first row at the bottom when the RMINC_flip_image
+# option is TRUE (the default) and at the top when it is FALSE; contours and
+# slice indicator lines go through here so that they follow the image.
+flipNativeY <- function(y, height) {
+  if (getOption("RMINC_flip_image", TRUE)) y else height - y
+}
+
 sliceContours <- function(volume,
                           dimension=2,
                           slice=NULL,
@@ -102,8 +110,9 @@ sliceContours <- function(volume,
   lwdVector <- lwd[floor(seq.int(from=1, to=length(lwd), length.out = length(levels)))]
 
 
-  lines <- contourLines(1:d[1], 1:d[2], s$slice, levels=levels) %>%
-    map( ~ linesGrob(.$x, .$y, vp=vp, default.units = "native",
+  # voxel i fills native coordinates i-1 to i, so its centre is at i - 0.5
+  lines <- contourLines(seq_len(d[1]) - 0.5, seq_len(d[2]) - 0.5, s$slice, levels=levels) %>%
+    map( ~ linesGrob(.$x, flipNativeY(.$y, d[2]), vp=vp, default.units = "native",
                      gp=gpar(col=colVector[match(.$level, levels)],
                              lty=ltyVector[match(.$level, levels)],
                              lwd=lwdVector[match(.$level, levels)])))
