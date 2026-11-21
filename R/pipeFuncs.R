@@ -131,6 +131,34 @@ maskBounds <- function(mask, dimension, padding = 10) {
   c(begin = max(1, r[1] - padding), end = min(dim(mask)[dimension], r[2] + padding))
 }
 
+# fields of a slice series; a layer is stored next to them, so it cannot
+# use one of these names
+reservedLayerNames <- c("nrow", "ncol", "dimension", "slices", "begin", "end",
+                        "seriesVP", "order", "legendInfo", "legendOrder",
+                        "sliceIndicator", "title", "titleSide", "legendGlobal",
+                        "anatomySpec")
+
+# The name under which a new layer is stored. A name that the user gives must
+# be new in the series; with no name, use the default if it is free, otherwise
+# make a unique one, so that a second layer never replaces the first.
+layerName <- function(ssm, name, default) {
+  ss <- getSS(ssm)
+  used <- unlist(ss$order)
+  if (is.null(name)) {
+    if (!(default %in% used)) return(default)
+    return(paste0(default, "#", ssm$seriesCounter, "_", length(ss$order) + 1))
+  }
+  if (!is.character(name) || length(name) != 1 || is.na(name) || name == "")
+    stop("'name' must be one non-empty string")
+  if (name %in% reservedLayerNames)
+    stop("'", name, "' cannot be used as a layer name. Do not use these names: ",
+         paste(reservedLayerNames, collapse = ", "))
+  if (name %in% used)
+    stop("A layer named '", name, "' is already in this slice series. ",
+         "Give each layer a different name.")
+  name
+}
+
 getSS <- function(ssm) {
   return(ssm$ssl[[ssm$seriesCounter]])
 }
@@ -226,6 +254,7 @@ anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL,
     if (missing(col)) col <- spec$col
     if (missing(alpha)) alpha <- spec$alpha
   }
+  name <- layerName(ssm, if (missing(name)) NULL else name, "anatomy")
   ssm <- slice(ssm, volume, low, high, col=col, alpha=alpha, name=name)
   ss <- getSS(ssm)
   ss$anatomySpec <- list(volume=volume, low=low, high=high, col=col, alpha=alpha)
@@ -282,6 +311,7 @@ overlay <- function(ssm, volume, low=NULL, high=NULL, col=defaultCol(),
     ss <- getSS(ssm)
     name <- paste0("overlay#", ssm$seriesCounter, "_", length(ss$order) + 1)
   }
+  name <- layerName(ssm, name, name)
   slice(ssm, volume, low, high, col=col, name=name, underTransparent = underTransparent, symmetric = symmetric,
         rCol=rCol, alpha=alpha, box=box, interpolate = interpolate)
 }
@@ -426,7 +456,10 @@ slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent 
 #' @param lwd The line width for the contours. Can be a single value, in which case
 #'   all levels will use the same line width, or a vector if different line widths for
 #'   different levels are desired. Default is 1.
-#' @param name An optional name.
+#' @param name An optional name. It must be different from the names of the
+#'   other layers in the slice series. With no name, the first contours layer
+#'   of a series is named \code{"contours"} and each later one gets a unique
+#'   name.
 #' @param labels An optional vector of label values to contour, for atlas or
 #'   segmentation volumes. Voxels whose value is in \code{labels} are turned
 #'   into a binary mask and the contour is drawn at its boundary. Give either
@@ -453,6 +486,7 @@ slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent 
 contours <- function(ssm, volume, levels=NULL, col="red", lty=1, lwd=1, name="contours", labels=NULL) {
   if (!is.null(labels) && !is.null(levels)) stop("Cannot specify both 'levels' and 'labels'")
   if (is.null(labels) && is.null(levels)) stop("Must specify either 'levels' or 'labels'")
+  name <- layerName(ssm, if (missing(name)) NULL else name, "contours")
   ss <- getSS(ssm)
   ss <- makeSlices(ss, volume)   # checks the volume before it is used below
   if (!is.null(labels)) {

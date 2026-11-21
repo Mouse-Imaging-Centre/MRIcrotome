@@ -36,7 +36,10 @@ different levels are desired. Default is 1.}
 all levels will use the same line width, or a vector if different line widths for
 different levels are desired. Default is 1.}
 
-\item{name}{An optional name.}
+\item{name}{An optional name. It must be different from the names of the
+other layers in the slice series. With no name, the first contours layer
+of a series is named \code{"contours"} and each later one gets a unique
+name.}
 
 \item{labels}{An optional vector of label values to contour, for atlas or
 segmentation volumes. Voxels whose value is in \code{labels} are turned
