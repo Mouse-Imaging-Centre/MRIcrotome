@@ -40,3 +40,12 @@ test_that("figureSize() leaves the current graphics device as it was", {
   expect_equal(dev.cur(), before)
   expect_length(dev.list(), n)
 })
+
+test_that("figureSize() refuses the same figures that draw() refuses", {
+  v <- testVolumes()
+  # the second series has only a slice indicator, so draw() stops
+  f <- sliceSeries(nrow = 1, ncol = 3) %>% anatomy(v$anat, 0, 3000) %>%
+    sliceSeries(dimension = 1) %>% anatomySliceIndicator(v$anat, 0, 3000, dimension = 2)
+  expect_error(grobify(f), "Slice series 2 has no layers")
+  expect_error(figureSize(f, width = 7), "Slice series 2 has no layers")
+})

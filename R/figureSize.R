@@ -46,11 +46,7 @@ figureSize <- function(ssm, width = NULL, height = NULL, layout = "column",
   if (!is.numeric(given) || length(given) != 1 || is.na(given) || given <= 0)
     stop("'width' or 'height' must be one positive number")
   layout <- match.arg(layout, c("column", "row"))
-  for (i in seq_along(ssm$ssl)) {
-    if (is.null(ssm$ssl[[i]]$seriesVP))
-      stop("Slice series ", i, " has no layers. Add anatomy(), overlay() or ",
-           "contours() after sliceSeries().")
-  }
+  checkHasLayers(ssm)
 
   # height / width of the grid of slices of each series
   aspect <- vapply(ssm$ssl, function(ss) {
