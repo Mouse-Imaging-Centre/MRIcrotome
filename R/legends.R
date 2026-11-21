@@ -1,3 +1,21 @@
+# the labels shown next to a colour bar, formatted together so decimals align
+legendStrings <- function(low, high, symmetric = FALSE) {
+  strings <- if (isTRUE(symmetric)) c(low, high, -low, -high) else c(low, high)
+  format(strings, drop0trailing = TRUE)
+}
+
+# width needed by the widest legend of a slice series: the sample column, the
+# labels, the optional description, and a one-line margin; never below 4 lines
+legendWidth <- function(ss, gp = gpar()) {
+  w <- unit(4, "lines")
+  for (n in ss$legendOrder) {
+    li <- ss$legendInfo[[n]]
+    strings <- if (li$type == "slice") legendStrings(li$low, li$high, li$symmetric) else format(li$levels)
+    w <- max(w, grobWidth(textGrob(strings, gp = gp)) + unit(2 + !is.null(li$description), "lines"))
+  }
+  w
+}
+
 contourLegendGrob <- function(levels,
                               col,
                               lty,
@@ -9,14 +27,14 @@ contourLegendGrob <- function(levels,
 
   nrows <- length(levels)
 
-  maxWidth <- max(c(convertWidth(stringWidth(levels), "lines")))
+  maxWidth <- grobWidth(textGrob(levels, gp = gp))
 
   if (is.null(description)) {
     ncols <- 2
-    widths <- unit.c(colWidth, unit(maxWidth, "lines"))
+    widths <- unit.c(colWidth, maxWidth)
   } else {
     ncols <- 3
-    widths <- unit.c(colWidth, unit(maxWidth, "lines"), unit(1, "lines"))
+    widths <- unit.c(colWidth, maxWidth, unit(1, "lines"))
   }
 
   vLayout <- viewport(name="layout",
@@ -56,26 +74,20 @@ sliceLegendGrob <- function(low, high,
                             colWidth = unit(1, "null"),
                             gp=gpar()){
 
-  # determine the maximum string width for purposes of setting viewport sizes
-  if (symmetric==TRUE) {
-    strings <- c(low, high, -low, -high)
-  } else {
-    strings <- c(low, high)
-  }
-  # format strings so that decimals align
-  strings <- format(strings, drop0trailing = T)
-
-  maxLength <- max(c(convertWidth(stringWidth(strings), "lines")))
-  maxLength <- max(1, maxLength) # no smaller than 1 line
+  strings <- legendStrings(low, high, symmetric)
+  # widest label, measured at draw time with the legend's own gp so that it is
+  # right on any device and font size (measuring here would use whatever device
+  # and gpar happen to be current while the pipe is being built)
+  maxLength <- max(unit(1, "lines"), grobWidth(textGrob(strings, gp = gp)))
 
   # construct the viewports; with either have 2 or 3 elements depending on
   # whether there is an outer description
   if (is.null(description)) {
     ncol <- 2
-    widths <- unit.c(colWidth, unit(maxLength, "lines"))
+    widths <- unit.c(colWidth, maxLength)
   } else {
     ncol <- 3
-    widths <- unit.c(colWidth, unit(c(maxLength,1), c("lines", "lines")))
+    widths <- unit.c(colWidth, maxLength, unit(1, "lines"))
   }
   vLayout <- viewport(name="layout", x=0.55*sum(widths),
                       layout=grid.layout(nrow=3, ncol=ncol,
@@ -142,11 +154,5 @@ sliceLegendGrob <- function(low, high,
                vp=vpPath("layout", "outer"))
   }
   gl <- do.call(gList, grobList)
-  gTree(name="legend", children = gl, childrenvp = vT, cl = "sliceLegend")
-}
-
-# the display width for calculating minimum size
-widthDetails.sliceLegend <- function(x){
-  # sum up the sizes; but since the actual colours are "null", add 1 line
-  sum(layout.widths(viewport.layout(x$childrenvp[[1]])))+unit(1, "lines")
+  gTree(name="legend", children = gl, childrenvp = vT)
 }
