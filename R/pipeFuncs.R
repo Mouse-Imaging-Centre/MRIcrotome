@@ -426,6 +426,9 @@ addtitle <- function(ssm, title, side = "right") {
 #' }
 legend <- function(ssm, description=NULL, global=FALSE) {
   ss <- getSS(ssm)
+  if (length(ss$order) == 0)
+    stop("legend() must come after a layer (anatomy(), overlay() or contours()) ",
+         "in the same slice series")
   last <- ss$order[[length(ss$order)]]
   ss$legendOrder <- c(ss$legendOrder, last)
   ss[["legendInfo"]][[last]]$description = description
@@ -661,6 +664,8 @@ sliceIndicatorDefaultDimensionAndSlice <- function(ssm, volume) {
 
 sliceIndicator <- function(ssm, volume, dimension, bgGrob, indVP, lineColour="green") {
   ss <- getSS(ssm)
+  # an indicator can come before the first layer; the slices are needed here
+  if (is.null(ss$slices)) ss <- makeSlices(ss, volume)
   if (dimension == ss$dimension) {
     stop("sliceIndicator dimension cannot be equal to sliceSeries dimension")
   }
@@ -800,6 +805,11 @@ grobifySliceSeries <- function(ss) {
 #'   grobify()
 #' }
 grobify <- function(ssm, layout="column", titlePars = gpar(), legendPars = gpar(), bgCol = NULL) {
+  for (i in seq_along(ssm$ssl)) {
+    if (length(ssm$ssl[[i]]$order) == 0)
+      stop("Slice series ", i, " has no layers. Add anatomy(), overlay() or ",
+           "contours() after sliceSeries().")
+  }
   if (layout=="column") grobifyByColumn(ssm, titlePars, legendPars, bgCol)
   else grobifyByRow(ssm, titlePars, legendPars, bgCol)
 }
