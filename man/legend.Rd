@@ -21,8 +21,10 @@ of a slice series share one side panel, so if any \code{legend()} call of
 the series has \code{global = TRUE}, the whole panel is global.}
 
 \item{digits}{The smallest number of significant digits in the numbers of a
-colour bar. The numbers are rounded to this, but the whole-number part is
-never rounded (so 1400 stays 1400). Defaults to 3.}
+colour bar, from 1 to 22. Defaults to 3. The numbers are formatted
+together with \code{format()}, so the whole-number part of a number
+such as 1400 is kept; but when the numbers differ very much in size (for
+example 0.0012 and 1234), R can use scientific notation.}
 }
 \value{
 The slices series for continuation down the pipe.
