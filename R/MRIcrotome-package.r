@@ -7,7 +7,7 @@
 #'
 #' @import purrr
 #' @import grid
-#' @importFrom grDevices colorRampPalette contourLines gray.colors
+#' @importFrom grDevices col2rgb colorRampPalette contourLines gray.colors rgb
 #' @importFrom graphics hist
 #' @importFrom stats quantile
 #' @keywords internal

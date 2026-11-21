@@ -30,13 +30,12 @@ sliceImage <- function(volume,
   sliceDims <- dim(s$slice)
 
   if (!is.null(alpha)) {
-    alphastr <- as.hexmode(floor(alpha*255))
     if (is.numeric(s$slice)) {
-      col = paste0(substr(col, 1, 7), alphastr)
-      rCol = paste0(substr(rCol, 1, 7), alphastr)
+      col <- setAlpha(col, alpha)
+      rCol <- setAlpha(rCol, alpha)
     }
     else {
-      s$slice[!is.na(s$slice)] <- paste0(substr(s$slice[!is.na(s$slice)], 1, 7), alphastr)
+      s$slice[!is.na(s$slice)] <- setAlpha(s$slice[!is.na(s$slice)], alpha)
       dim(s$slice) <- sliceDims
     }
   }
@@ -75,6 +74,15 @@ sliceImage <- function(volume,
   #return(gList(g, rectGrob(gp=gpar(col="black", fill="#FFFFFF00"), vp=vp)))
       return(gList(g))
     }
+}
+
+# Colours with their opacity set to alpha (0 = transparent, 1 = opaque). Takes
+# any colour that R knows: names such as "red", "#RRGGBB" and "#RRGGBBAA".
+setAlpha <- function(colours, alpha) {
+  if (!is.numeric(alpha) || length(alpha) != 1 || is.na(alpha) || alpha < 0 || alpha > 1)
+    stop("'alpha' must be one number between 0 and 1")
+  m <- col2rgb(colours)
+  rgb(m[1, ], m[2, ], m[3, ], alpha = floor(alpha * 255), maxColorValue = 255)
 }
 
 sliceContours <- function(volume,
