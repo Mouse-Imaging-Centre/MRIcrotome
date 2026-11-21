@@ -127,7 +127,6 @@ sliceSeries <- function(ssm=NULL,
     ssm <- cloneSSM(ssm)
     ssm$seriesCounter = ssm$seriesCounter+1
   }
-  # add checking for slices vs nrow and ncol
 
   if (is.null(nrow)) nrow <- ssm$ssl[[ssm$seriesCounter-1]]$nrow
   if (is.null(ncol)) ncol <- ssm$ssl[[ssm$seriesCounter-1]]$ncol
@@ -143,7 +142,7 @@ sliceSeries <- function(ssm=NULL,
             end=if (is.null(end) && ssm$seriesCounter>1) ssm$ssl[[ssm$seriesCounter-1]]$end else end,
             rotate=if (is.null(rotate)) prev$rotate %||% 0 else rotate,
             flip=if (is.null(flip)) prev$flip %||% "none" else flip,
-            seriesVP=NULL, #seriesVP,
+            seriesVP=NULL,
             order=list(),
             legendInfo=list(),
             legendOrder=list(),
@@ -442,8 +441,10 @@ addtitle <- function(ssm, title, side = "right") {
 #'   instead of sitting beside its own slice series. In column layout a legend
 #'   already spans the full height, so this has no effect there.
 #' @param digits The smallest number of significant digits in the numbers of a
-#'   colour bar. The numbers are rounded to this, but the whole-number part is
-#'   never rounded (so 1400 stays 1400). Defaults to 3.
+#'   colour bar, from 1 to 22. Defaults to 3. The numbers are formatted
+#'   together with \code{format()}, so the whole-number part of a number
+#'   such as 1400 is kept; but when the numbers differ very much in size (for
+#'   example 0.0012 and 1234), R can use scientific notation.
 #'
 #' @return The slices series for continuation down the pipe.
 #' @export
@@ -473,6 +474,9 @@ addtitle <- function(ssm, title, side = "right") {
 #'   legend("t-statistics", global = TRUE) %>%
 #'   draw(layout = "row")
 legend <- function(ssm, description=NULL, global=FALSE, digits=3) {
+  if (!is.numeric(digits) || length(digits) != 1 || is.na(digits) ||
+      digits != round(digits) || digits < 1 || digits > 22)
+    stop("'digits' must be one whole number from 1 to 22")
   ss <- getSS(ssm)
   if (length(ss$order) == 0)
     stop("legend() must come after a layer (anatomy(), overlay() or contours()) ",
