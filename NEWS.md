@@ -11,6 +11,8 @@ since 0.2.0. The numbers are GitHub pull requests and issues.
   intensity (#66). All examples and the vignette now run on them (#67, #68).
 * `sliceSeries()` has `rotate` and `flip` arguments, which turn each slice of
   a series. All layers of the series stay aligned (#71, from #7).
+* A negative `end` in `sliceSeries()` counts back from the last slice, as in
+  RMINC's `mincPlotSliceSeries()` (#80).
 * `figureSize()` calculates the device size at which the slices fill their
   area with no padding (#72, from #10).
 * `maskBounds()` gives the first and last slice of a mask, for `begin` and
