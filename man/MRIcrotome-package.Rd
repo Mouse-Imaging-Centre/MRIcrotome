@@ -11,4 +11,21 @@ volumes such as MRI data. It uses a pipe-based interface to build up slice
 series with anatomy underlays, statistical overlays, contours, legends, and
 titles.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/Mouse-Imaging-Centre/MRIcrotome}
+  \item Report bugs at \url{https://github.com/Mouse-Imaging-Centre/MRIcrotome/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: Jason Lerch \email{jason.lerch@sickkids.ca}
+
+Authors:
+\itemize{
+  \item Jason Lerch \email{jason.lerch@sickkids.ca}
+}
+
+}
 \keyword{internal}
