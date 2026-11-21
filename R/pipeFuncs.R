@@ -641,13 +641,15 @@ sliceIndicator <- function(ssm, volume, dimension, bgGrob, indVP, lineColour="gr
   counter <- 1
   for (i in 1:ss$nrow) {
     for (j in 1:ss$ncol) {
+      # a line through the centre of the slice's voxels (slice s fills native
+      # coordinates s-1 to s), on the same side as the flipped image
       if ( (ss$dimension == 2 & dimension == 1) |
            (ss$dimension == 1) ) {
-        xd <- c(rep(ss$slices[counter], 2))
+        xd <- c(rep(ss$slices[counter] - 0.5, 2))
         yd <- c(0,sliceDims[2])
       } else {
         xd <- c(0, sliceDims[1])
-        yd <- c(rep(ss$slices[counter], 2))
+        yd <- flipNativeY(c(rep(ss$slices[counter] - 0.5, 2)), sliceDims[2])
       }
       lineList[[counter]] <- linesGrob(x = xd,
                                        y = yd,
