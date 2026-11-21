@@ -425,7 +425,9 @@ addtitle <- function(ssm, title, side = "right") {
 #' Add a legend
 #'
 #' Adds a legend based on the current slice series. Colour bars, contours, etc.,
-#' are taken from the immediately preceding element.
+#' are taken from the immediately preceding element. A second \code{legend()}
+#' call for the same element replaces its description and \code{digits}; it
+#' does not add a second legend.
 #'
 #' @param ssm The slice series info, usually passed along the pipe and specified
 #'   by the user
@@ -434,7 +436,9 @@ addtitle <- function(ssm, title, side = "right") {
 #' @param global If TRUE, and the figure is drawn with \code{layout = "row"},
 #'   the legend spans all rows as one shared legend for the whole figure
 #'   instead of sitting beside its own slice series. In column layout a legend
-#'   already spans the full height, so this has no effect there.
+#'   already spans the full height, so this has no effect there. All legends
+#'   of a slice series share one side panel, so if any \code{legend()} call of
+#'   the series has \code{global = TRUE}, the whole panel is global.
 #' @param digits The smallest number of significant digits in the numbers of a
 #'   colour bar. The numbers are rounded to this, but the whole-number part is
 #'   never rounded (so 1400 stays 1400). Defaults to 3.
@@ -472,10 +476,13 @@ legend <- function(ssm, description=NULL, global=FALSE, digits=3) {
     stop("legend() must come after a layer (anatomy(), overlay() or contours()) ",
          "in the same slice series")
   last <- ss$order[[length(ss$order)]]
-  ss$legendOrder <- c(ss$legendOrder, last)
+  # a second legend() on the same layer changes that legend, not adds one
+  if (!(last %in% unlist(ss$legendOrder))) ss$legendOrder <- c(ss$legendOrder, last)
   ss[["legendInfo"]][[last]]$description = description
   ss[["legendInfo"]][[last]]$digits = digits
-  ss$legendGlobal <- global
+  # the side panel of a series is either global or not; once one of its
+  # legends asks for global, it stays global
+  ss$legendGlobal <- isTRUE(ss$legendGlobal) || isTRUE(global)
   ssm <- putSS(ssm, ss)
   return(ssm)
 }
