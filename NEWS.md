@@ -6,9 +6,8 @@ since 0.2.0. The numbers are GitHub pull requests and issues.
 ## New features
 
 * `exampleVolumes()` returns three volumes in one space for examples and
-  tests: a real cut-out of a mouse brain MRI (from the RMINC test data,
-  copyright Mouse Imaging Centre, BSD-3-Clause, see `COPYRIGHTS`), a
-  synthetic map of t-statistics, and labels that divide the image by
+  tests: a real cut-out of a mouse brain MRI (from the RMINC test data, with
+  the same copyright holder and licence as this package), a synthetic map of t-statistics, and labels that divide the image by
   intensity (#66). All examples and the vignette now run on them (#67, #68).
 * `sliceSeries()` has `rotate` and `flip` arguments, which turn each slice of
   a series. All layers of the series stay aligned (#71, from #7).
