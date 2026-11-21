@@ -792,7 +792,8 @@ grobifySliceSeries <- function(ss) {
 #' Can then be incorporated into other grid functions.
 #'
 #' @param ssm The slice series
-#' @param layout Whether to lay out by column (the default) or by row.
+#' @param layout Whether to lay out by \code{"column"} (the default) or by
+#'   \code{"row"}.
 #' @param titlePars A `gpar` list configuring text grobs when generating titles.
 #' useful for setting e.g. `fontsize` and `col`
 #' @param legendPars A `gpar` list configuring text grobs when generating legends
@@ -818,6 +819,7 @@ grobify <- function(ssm, layout="column", titlePars = gpar(), legendPars = gpar(
       stop("Slice series ", i, " has no layers. Add anatomy(), overlay() or ",
            "contours() after sliceSeries().")
   }
+  layout <- match.arg(layout, c("column", "row"))
   if (layout=="column") grobifyByColumn(ssm, titlePars, legendPars, bgCol)
   else grobifyByRow(ssm, titlePars, legendPars, bgCol)
 }
@@ -922,7 +924,8 @@ grobifyByColumn <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol 
 #'
 #' @param ssm The slice series info, usually passed along the pipe and specified
 #'   by the user
-#' @param layout either "column" or "row" for how to layout the figure
+#' @param layout Either \code{"column"} (the default) or \code{"row"}: how to
+#'   lay out the figure.
 #'
 #' @return invisible NULL
 #' @export

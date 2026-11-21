@@ -15,7 +15,8 @@ grobify(
 \arguments{
 \item{ssm}{The slice series}
 
-\item{layout}{Whether to lay out by column (the default) or by row.}
+\item{layout}{Whether to lay out by \code{"column"} (the default) or by
+\code{"row"}.}
 
 \item{titlePars}{A \code{gpar} list configuring text grobs when generating titles.
 useful for setting e.g. \code{fontsize} and \code{col}}

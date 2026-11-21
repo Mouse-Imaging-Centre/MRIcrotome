@@ -1,0 +1,10 @@
+# a layout that is not "column" or "row" is refused (#46 item 2.7)
+test_that("layout must be column or row", {
+  v <- testVolumes()
+  pdf(NULL); on.exit(dev.off())
+  ssm <- sliceSeries(nrow = 1, ncol = 2) %>% anatomy(v$anat, 0, 3000)
+  expect_error(grobify(ssm, layout = "rows"), "should be one of")
+  expect_error(draw(ssm, layout = "grid"), "should be one of")
+  expect_no_error(grobify(ssm, layout = "row"))
+  expect_no_error(grobify(ssm))
+})
