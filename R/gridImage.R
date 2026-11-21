@@ -11,6 +11,7 @@ sliceImage <- function(volume,
                        rCol = defaultRCol(),
                        alpha=NULL,
                        box=FALSE,
+                       interpolate = TRUE,
                        vp=NULL) {
 
   if (length(dim(volume)) != 3)
@@ -58,7 +59,7 @@ sliceImage <- function(volume,
     #rasterImage(colourizedSlice, xleft = 0, xright = sliceDims[1],
     #            ytop = 0, ybottom = sliceDims[2])
     g <- rasterGrob(colourizedSlice, vp=vp, width = unit(sliceDims[1], "native"),
-                    height = unit(sliceDims[2], "native")) #
+                    height = unit(sliceDims[2], "native"), interpolate = interpolate) #
     #grid.raster(colourizedSlice)
   #
   #return(invisible(NULL))
@@ -69,7 +70,7 @@ sliceImage <- function(volume,
                                  high=high,
                                  reverse=TRUE,
                                  underTransparent=TRUE,
-                                 col=rCol, vp=vp)))
+                                 col=rCol, vp=vp, interpolate = interpolate)))
     } else {
   #return(gList(g, rectGrob(gp=gpar(col="black", fill="#FFFFFF00"), vp=vp)))
       return(gList(g))
@@ -103,10 +104,34 @@ sliceContours <- function(volume,
 
 
 
+#' Default colour palette for overlays
+#'
+#' Returns the default colour palette used by \code{\link{overlay}}: a
+#' red-to-yellow ramp with 255 colours. Set the \code{MRIcrotomeCol} option
+#' to change it, e.g. \code{options(MRIcrotomeCol = heat.colors(255))}.
+#'
+#' @return A character vector of colours.
+#' @export
+#' @examples
+#' defaultCol()
+#' options(MRIcrotomeCol = colorRampPalette(c("white", "red"))(255))
+#' defaultCol()[1]
+#' options(MRIcrotomeCol = NULL)
 defaultCol <- function() {
   getOption("MRIcrotomeCol", colorRampPalette(c("red", "yellow"))(255))
 }
 
+#' Default reverse colour palette for overlays
+#'
+#' Returns the default colour palette used for negative values when
+#' \code{symmetric=TRUE} in \code{\link{overlay}}: a blue-to-turquoise ramp
+#' with 255 colours. Set the \code{MRIcrotomeRcol} option to change it, e.g.
+#' \code{options(MRIcrotomeRcol = cm.colors(255))}.
+#'
+#' @return A character vector of colours.
+#' @export
+#' @examples
+#' defaultRCol()
 defaultRCol <- function() {
   getOption("MRIcrotomeRcol", colorRampPalette(c("blue", "turquoise1"))(255))
 }
