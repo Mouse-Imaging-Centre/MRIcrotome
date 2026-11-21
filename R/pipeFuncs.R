@@ -36,7 +36,12 @@ validateVolume <- function(volume) {
 #' @param ncol Columns in the slice series. Set to 1 if NULL and nrow specified.
 #' @param dimension Dimension as integer (1, 2, or 3) for slice series.
 #' @param begin First slice. Can be NULL if slices explicitly specified.
-#' @param end Last slice. Can be NULL if slices explicitly specified.
+#' @param end Last slice. Can be NULL if slices explicitly specified. A
+#'   negative value counts back from the last slice of the volume, as in
+#'   RMINC's \code{mincPlotSliceSeries()}: \code{begin = 10, end = -10}
+#'   leaves out 10 slices at each side. A negative \code{end} carries over to
+#'   later series as a negative value, so each series gets the same margin,
+#'   also along a dimension with another number of slices.
 #' @param rotate Rotate each slice counterclockwise by 0 (the default), 90,
 #'   180 or 270 degrees. For 90 and 270 the slices change from wide to tall,
 #'   and the layout of the series follows.
@@ -49,6 +54,15 @@ validateVolume <- function(volume) {
 #'   layer of the series (anatomy, overlays and contours), so the layers stay
 #'   aligned. Slice indicators are not turned: they show a view along another
 #'   dimension.
+#' @param voxelSize The voxel separations along the three array dimensions,
+#'   for example \code{c(0.1, 0.1, 0.5)}. With the default (NULL, which means
+#'   \code{c(1, 1, 1)}) each voxel is drawn as a square. Give the separations
+#'   of a volume whose voxels are not cubes, so that its slices and slice
+#'   indicators are drawn with their real proportions. Only the ratios
+#'   matter, so any unit works. Like the other arguments, it carries over to
+#'   later series. For a MINC file read with RMINC, the separations in array
+#'   order are \code{rev(abs(RMINC::minc.separation.sizes(file)))}, because
+#'   \code{mincArray()} reverses the file's dimension order.
 #'
 #' @return Returns the slices series info for passing along the pipe.
 #' @export
@@ -80,7 +94,8 @@ sliceSeries <- function(ssm=NULL,
                         begin=NULL,
                         end=NULL,
                         rotate=NULL,
-                        flip=NULL) {
+                        flip=NULL,
+                        voxelSize=NULL) {
 
   checkCount <- function(x, arg) {
     if (!is.null(x) && (!is.numeric(x) || length(x) != 1 || is.na(x) || x < 1 || x != round(x)))
@@ -95,6 +110,9 @@ sliceSeries <- function(ssm=NULL,
                            !(rotate %in% c(0, 90, 180, 270))))
     stop("'rotate' must be 0, 90, 180 or 270")
   if (!is.null(flip)) flip <- match.arg(flip, c("none", "horizontal", "vertical"))
+  if (!is.null(voxelSize) && (!is.numeric(voxelSize) || length(voxelSize) != 3 ||
+                              any(!is.finite(voxelSize)) || any(voxelSize <= 0)))
+    stop("'voxelSize' must be three positive numbers, one for each array dimension")
 
   # with explicit slices, calculate the missing nrow or ncol from their number
   if (!is.null(slices)) {
@@ -141,6 +159,7 @@ sliceSeries <- function(ssm=NULL,
             end=if (is.null(end) && ssm$seriesCounter>1) ssm$ssl[[ssm$seriesCounter-1]]$end else end,
             rotate=if (is.null(rotate)) prev$rotate %||% 0 else rotate,
             flip=if (is.null(flip)) prev$flip %||% "none" else flip,
+            voxelSize=if (is.null(voxelSize)) prev$voxelSize %||% c(1, 1, 1) else voxelSize,
             seriesVP=NULL, #seriesVP,
             order=list(),
             legendInfo=list(),
@@ -191,7 +210,7 @@ maskBounds <- function(mask, dimension, padding = 10) {
 reservedLayerNames <- c("nrow", "ncol", "dimension", "slices", "begin", "end",
                         "seriesVP", "order", "legendInfo", "legendOrder",
                         "sliceIndicator", "title", "titleSide", "legendGlobal",
-                        "anatomySpec", "rotate", "flip")
+                        "anatomySpec", "rotate", "flip", "voxelSize")
 
 # The name under which a new layer is stored. A name that the user gives must
 # be new in the series; with no name, use the default if it is free, otherwise
@@ -232,10 +251,12 @@ putSS <- function(ssm, ss) {
 makeSlices <- function(ss, volume) {
   validateVolume(volume)
   if (is.null(ss$seriesVP)) {
-    sliceDims <- seriesSliceDims(ss, volume)
+    # the cells have the physical size of a slice, so voxels that are not
+    # square keep their proportions; inside a cell, grobs use voxel units
+    cell <- seriesCellSize(ss, volume)
     gl <- grid.layout(nrow=ss$nrow, ncol=ss$ncol,
-                      widths=rep(sliceDims[1], ss$ncol),
-                      heights=rep(sliceDims[2], ss$nrow), respect = TRUE)
+                      widths=rep(cell[1], ss$ncol),
+                      heights=rep(cell[2], ss$nrow), respect = TRUE)
     ss$seriesVP <- viewport(layout = gl)
   }
   fromRange <- is.null(ss$slices)
@@ -246,6 +267,9 @@ makeSlices <- function(ss, volume) {
     d <- dim(volume)
     begin <- if (is.null(ss$begin)) 1 else ss$begin
     end <- if (is.null(ss$end)) d[ss$dimension] else ss$end
+    # a negative end counts back from the last slice, as in RMINC's
+    # mincPlotSliceSeries(): end = -25 stops 25 slices before the end
+    if (end < 0) end <- d[ss$dimension] + end
     nslices <- ss$nrow*ss$ncol
     ss$slices <- ceiling(seq(begin, end, length=nslices))
   }
@@ -739,8 +763,10 @@ sliceIndicator <- function(ssm, volume, dimension, bgGrob, indVP, lineColour="gr
     stop("sliceIndicator dimension cannot be equal to sliceSeries dimension")
   }
   sliceDims <- dim(volume)[-dimension]
-  overVP <- viewport(layout = grid.layout(1, 1, widths = sliceDims[1],
-                                          heights = sliceDims[2],
+  # physical proportions of the indicator slice (lines stay in voxel units)
+  cell <- sliceDims * (ss$voxelSize %||% c(1, 1, 1))[-dimension]
+  overVP <- viewport(layout = grid.layout(1, 1, widths = cell[1],
+                                          heights = cell[2],
                                           respect = TRUE))
   lineList <- list()
   counter <- 1

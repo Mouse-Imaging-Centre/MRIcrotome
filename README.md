@@ -138,9 +138,10 @@ grid.draw(g)
 
 Each slice series keeps the aspect ratio of its slices: the grid of slices is
 `ncol * w` wide by `nrow * h` high, where `w` and `h` are the slice
-dimensions in voxels (`dim(volume)[-dimension]`; voxel size is not taken
-into account). When the device has a different shape, the slices are centred
-in their cell and the rest of the cell is filled with the black background.
+dimensions in voxels (`dim(volume)[-dimension]`), times the voxel
+separations when you give `sliceSeries(voxelSize = )`. When the device has a
+different shape, the slices are centred in their cell and the rest of the
+cell is filled with the black background.
 To avoid that padding, size the device to the figure:
 
 ```r
