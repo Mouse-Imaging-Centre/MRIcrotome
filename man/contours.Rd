@@ -63,10 +63,10 @@ sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) \%>\%
   legend("|t|") \%>\%
   draw()
 
-# outline the white matter from a volume of labels
+# outline label 1 (dark tissue) of a volume of labels
 sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) \%>\%
   anatomy(v$anatomy, low = 600, high = 1400) \%>\%
   contours(v$labels, labels = 1, col = "magenta") \%>\%
-  legend("white matter") \%>\%
+  legend("dark tissue") \%>\%
   draw()
 }
