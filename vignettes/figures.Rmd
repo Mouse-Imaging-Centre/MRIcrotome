@@ -13,7 +13,7 @@ vignette: >
 knitr::opts_chunk$set(fig.width = 6, fig.height = 4, dpi = 72)
 ```
 
-MRIcrotome draws figures from 3D arrays. This vignette uses the volumes that `exampleVolumes()` returns: _anatVol_, a real cut-out around the cerebellum of a mouse brain MRI, _stats_, a made-up map of t-statistics in the same space, and _labels_, which divides the anatomy into white matter (1) and grey matter (2). (Note for RMINC users: with your own data, _anatVol_ and _stats_ would be the output of _mincArray_.)
+MRIcrotome draws figures from 3D arrays. This vignette uses the volumes that `exampleVolumes()` returns: _anatVol_, a real cut-out of a mouse brain MRI from the RMINC test data, _stats_, a made-up map of t-statistics in the same space, and _labels_, which divides the anatomy by intensity into dark (1) and light (2) tissue. (Note for RMINC users: with your own data, _anatVol_ and _stats_ would be the output of _mincArray_.)
 
 ```{r}
 library(grid)
@@ -195,13 +195,13 @@ sliceSeries(nrow = 1, begin=20, end=35) %>%
   draw()
 ```
 
-Contours can also outline regions of a volume of labels, such as an atlas or a segmentation. Here the white matter (label 1) is outlined; the legend shows the label values.
+Contours can also outline regions of a volume of labels, such as an atlas or a segmentation. Here label 1 (the dark tissue) is outlined; the legend shows the label value.
 
 ```{r}
 sliceSeries(nrow = 1, begin=20, end=35) %>% 
   anatomy(anatVol, low=700, high=1400) %>% 
   contours(labels, labels = 1, col = "magenta") %>%
-  legend("white matter") %>%
+  legend("dark tissue") %>%
   draw()
 ```
 
