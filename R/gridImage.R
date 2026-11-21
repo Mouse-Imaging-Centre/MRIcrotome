@@ -255,3 +255,11 @@ seriesSliceDims <- function(ss, volume) {
   d <- dim(volume)[-ss$dimension]
   if ((ss$rotate %||% 0) %in% c(90, 270)) rev(d) else d
 }
+
+# width and height of the slices of a series in physical units: voxels times
+# the voxel separations of the two axes that are drawn
+seriesCellSize <- function(ss, volume) {
+  vs <- (ss$voxelSize %||% c(1, 1, 1))[-ss$dimension]
+  if ((ss$rotate %||% 0) %in% c(90, 270)) vs <- rev(vs)
+  seriesSliceDims(ss, volume) * vs
+}
