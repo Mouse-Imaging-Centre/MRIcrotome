@@ -207,7 +207,8 @@ makeSlices <- function(ss, volume) {
                       heights=rep(sliceDims[2], ss$nrow), respect = TRUE)
     ss$seriesVP <- viewport(layout = gl)
   }
-  if (is.null(ss$slices)) {
+  fromRange <- is.null(ss$slices)
+  if (fromRange) {
     # the defaults are not stored in ss$begin/ss$end, so that a later series
     # inherits only what the user gave (a later series can have another
     # dimension, with another number of slices)
@@ -217,6 +218,15 @@ makeSlices <- function(ss, volume) {
     nslices <- ss$nrow*ss$ncol
     ss$slices <- ceiling(seq(begin, end, length=nslices))
   }
+
+  n <- dim(volume)[ss$dimension]
+  s <- ss$slices
+  bad <- is.na(s) | s < 1 | s > n | s != round(s)
+  if (any(bad))
+    stop("Slices must be whole numbers from 1 to ", n, " (dimension ", ss$dimension,
+         " of the volume has ", n, " slices). Not valid: ",
+         paste(unique(s[bad]), collapse = ", "),
+         if (fromRange) ". Check 'begin' and 'end'." else ".")
 
   if (length(ss$slices) != ss$ncol*ss$nrow)
     warning("Number of slices does not equal nrow*ncol, likely resulting in weird figures")
