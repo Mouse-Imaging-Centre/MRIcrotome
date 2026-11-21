@@ -399,6 +399,11 @@ addtitle <- function(ssm, title, side = "right") {
 #'   the legend spans all rows as one shared legend for the whole figure
 #'   instead of sitting beside its own slice series. In column layout a legend
 #'   already spans the full height, so this has no effect there.
+#' @param digits The smallest number of significant digits in the numbers of a
+#'   colour bar, from 1 to 22. Defaults to 3. The numbers are formatted
+#'   together with \code{format()}, so the whole-number part of a number
+#'   such as 1400 is kept; but when the numbers differ very much in size (for
+#'   example 0.0012 and 1234), R can use scientific notation.
 #'
 #' @return The slices series for continuation down the pipe.
 #' @export
@@ -428,7 +433,10 @@ addtitle <- function(ssm, title, side = "right") {
 #'   legend("t-statistics", global = TRUE) %>%
 #'   draw(layout = "row")
 #' }
-legend <- function(ssm, description=NULL, global=FALSE) {
+legend <- function(ssm, description=NULL, global=FALSE, digits=3) {
+  if (!is.numeric(digits) || length(digits) != 1 || is.na(digits) ||
+      digits != round(digits) || digits < 1 || digits > 22)
+    stop("'digits' must be one whole number from 1 to 22")
   ss <- getSS(ssm)
   if (length(ss$order) == 0)
     stop("legend() must come after a layer (anatomy(), overlay() or contours()) ",
@@ -436,6 +444,7 @@ legend <- function(ssm, description=NULL, global=FALSE) {
   last <- ss$order[[length(ss$order)]]
   ss$legendOrder <- c(ss$legendOrder, last)
   ss[["legendInfo"]][[last]]$description = description
+  ss[["legendInfo"]][[last]]$digits = digits
   ss$legendGlobal <- global
   ssm <- putSS(ssm, ss)
   return(ssm)
@@ -733,7 +742,8 @@ assembleLegends <- function(ss, gp = gpar()) {
       gl <- gList(sliceLegendGrob(li$low, li$high, li$col,
                                   li$rCol, li$symmetric,
                                   colWidth = unit(1, "lines"),
-                                  description = li$description, gp = gp))
+                                  description = li$description, gp = gp,
+                                  digits = li$digits %||% 3))
     else if (li$type == "contour")
       gl <- gList(contourLegendGrob(levels=contourLegendLevels(li), col=li$col, lty=li$lty, lwd=li$lwd,
                                     description=li$description, gp = gp))

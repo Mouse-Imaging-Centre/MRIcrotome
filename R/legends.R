@@ -1,7 +1,9 @@
-# the labels shown next to a colour bar, formatted together so decimals align
-legendStrings <- function(low, high, symmetric = FALSE) {
+# the labels shown next to a colour bar, formatted together so decimals align,
+# with at least `digits` significant digits (so an automatic range such as
+# -2.0155497 shows as -2.02; whole numbers such as 1400 are never rounded)
+legendStrings <- function(low, high, symmetric = FALSE, digits = 3) {
   strings <- if (isTRUE(symmetric)) c(low, high, -low, -high) else c(low, high)
-  format(strings, drop0trailing = TRUE)
+  format(strings, digits = digits, drop0trailing = TRUE)
 }
 
 # width needed by the widest legend of a slice series: the sample column, the
@@ -10,7 +12,7 @@ legendWidth <- function(ss, gp = gpar()) {
   w <- unit(4, "lines")
   for (n in ss$legendOrder) {
     li <- ss$legendInfo[[n]]
-    strings <- if (li$type == "slice") legendStrings(li$low, li$high, li$symmetric) else format(contourLegendLevels(li))
+    strings <- if (li$type == "slice") legendStrings(li$low, li$high, li$symmetric, li$digits %||% 3) else format(contourLegendLevels(li))
     w <- max(w, grobWidth(textGrob(strings, gp = gp)) + unit(2 + !is.null(li$description), "lines"))
   }
   w
@@ -81,9 +83,10 @@ sliceLegendGrob <- function(low, high,
                             lowText = NULL,
                             highText = NULL,
                             colWidth = unit(1, "null"),
-                            gp=gpar()){
+                            gp=gpar(),
+                            digits = 3){
 
-  strings <- legendStrings(low, high, symmetric)
+  strings <- legendStrings(low, high, symmetric, digits)
   # widest label, measured at draw time with the legend's own gp so that it is
   # right on any device and font size (measuring here would use whatever device
   # and gpar happen to be current while the pipe is being built)
