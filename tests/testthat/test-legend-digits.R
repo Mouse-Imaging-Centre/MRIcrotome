@@ -18,3 +18,11 @@ test_that("legend(digits = ) reaches the drawn colour bar", {
   expect_equal(labels(base %>% legend("t"))[1:2], c("-2.02", "5"))
   expect_equal(labels(base %>% legend("t", digits = 5))[1:2], c("-2.0155", "5"))
 })
+
+test_that("legend(digits = ) is checked", {
+  v <- testVolumes()
+  base <- sliceSeries(nrow = 1, ncol = 2) %>% anatomy(v$anat, 0, 3000)
+  for (d in list(-1, 0, 23, 2.5, NULL, NA, "3", c(2, 3)))
+    expect_error(base %>% legend("a", digits = d), "from 1 to 22")
+  expect_no_error(base %>% legend("a", digits = 22))
+})
