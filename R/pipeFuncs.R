@@ -36,7 +36,15 @@ validateVolume <- function(volume) {
 #' @param ncol Columns in the slice series. Set to 1 if NULL and nrow specified.
 #' @param dimension Dimension as integer (1, 2, or 3) for slice series.
 #' @param begin First slice. Can be NULL if slices explicitly specified.
-#' @param end Last slice. Can be NULL if slices explicitly specified.
+#' @param end Last slice. Can be NULL if slices explicitly specified. A
+#'   negative value counts back from the last slice of the volume, as in
+#'   RMINC's \code{mincPlotSliceSeries()}: the last slice is
+#'   \code{dim(volume)[dimension] + end}, so \code{begin = 11, end = -10}
+#'   leaves out 10 slices at each side. A negative \code{end} carries over to
+#'   later series as a negative value, so each series gets the same margin,
+#'   also along a dimension with another number of slices. As with positive
+#'   values, a \code{begin} after the end gives the slices in the opposite
+#'   order (RMINC stops instead).
 #' @param rotate Rotate each slice counterclockwise by 0 (the default), 90,
 #'   180 or 270 degrees. For 90 and 270 the slices change from wide to tall,
 #'   and the layout of the series follows. With
@@ -247,6 +255,9 @@ makeSlices <- function(ss, volume) {
     d <- dim(volume)
     begin <- if (is.null(ss$begin)) 1 else ss$begin
     end <- if (is.null(ss$end)) d[ss$dimension] else ss$end
+    # a negative end counts back from the last slice, as in RMINC's
+    # mincPlotSliceSeries(): end = -25 stops 25 slices before the end
+    if (end < 0) end <- d[ss$dimension] + end
     nslices <- ss$nrow*ss$ncol
     ss$slices <- ceiling(seq(begin, end, length=nslices))
   }
