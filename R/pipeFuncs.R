@@ -71,6 +71,7 @@ sliceSeries <- function(ssm=NULL,
 
   }
   else {
+    ssm <- cloneSSM(ssm)
     ssm$seriesCounter = ssm$seriesCounter+1
   }
   # add checking for slices vs nrow and ncol
@@ -133,8 +134,16 @@ maskBounds <- function(mask, dimension, padding = 10) {
 getSS <- function(ssm) {
   return(ssm$ssl[[ssm$seriesCounter]])
 }
+# Each pipe step returns a changed copy and leaves its input as it was, so a
+# partial pipe can be stored and extended in more than one way. The slice
+# series list is copied with the environment (R copies lists on change).
+cloneSSM <- function(ssm) {
+  list2env(as.list(ssm, all.names = TRUE), parent = globalenv())
+}
 putSS <- function(ssm, ss) {
+  ssm <- cloneSSM(ssm)
   ssm$ssl[[ssm$seriesCounter]] <- ss
+  ssm
 }
 
 makeSlices <- function(ss, volume) {
@@ -200,7 +209,7 @@ anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL,
     ss[["seriesVP"]] <- ssm$ssl[[ssm$seriesCounter-1]][["seriesVP"]]
     ss[["legendInfo"]][[name]] <- ssm$ssl[[ssm$seriesCounter-1]][["legendInfo"]][["anatomy"]]
     ss[["order"]][[length(ss$order)+1]] <- name
-    putSS(ssm, ss)
+    ssm <- putSS(ssm, ss)
     return(ssm)
   } else {
     slice(ssm, volume, low, high, col=col, alpha=alpha, name=name)
@@ -291,7 +300,7 @@ addtitle <- function(ssm, title, side = "right") {
   ss <- getSS(ssm)
   ss$title <- title
   ss$titleSide <- side
-  putSS(ssm, ss)
+  ssm <- putSS(ssm, ss)
   return(ssm)
 }
 
@@ -343,7 +352,7 @@ legend <- function(ssm, description=NULL, global=FALSE) {
   ss$legendOrder <- c(ss$legendOrder, last)
   ss[["legendInfo"]][[last]]$description = description
   ss$legendGlobal <- global
-  putSS(ssm, ss)
+  ssm <- putSS(ssm, ss)
   return(ssm)
 }
 
@@ -377,7 +386,7 @@ slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent 
   ss[[name]] <- sliceList
   ss[["legendInfo"]][[name]] <- list(type="slice", low=low, high=high, col=col, rCol=rCol, symmetric=symmetric)
   ss[["order"]][[length(ss$order)+1]] <- name
-  putSS(ssm, ss)
+  ssm <- putSS(ssm, ss)
   return(ssm)
 }
 
@@ -452,7 +461,7 @@ contours <- function(ssm, volume, levels=NULL, col="red", lty=1, lwd=1, name="co
   #ss[["legendInfo"]][[name]] <- list(low=low, high=high, col=col, rCol=rCol, symmetric=symmetric)
   ss[["order"]][[length(ss$order)+1]] <- name
   ss[["legendInfo"]][[name]] <- list(type="contour", levels=levels, col=col, lty=lty, lwd=lwd)
-  putSS(ssm, ss)
+  ssm <- putSS(ssm, ss)
   return(ssm)
 }
 
@@ -599,7 +608,7 @@ sliceIndicator <- function(ssm, volume, dimension, bgGrob, indVP, lineColour="gr
     }
   }
   ss[["sliceIndicator"]] <- gTree(vp=overVP, children=do.call(gList, c(bgGrob, lineList)))
-  putSS(ssm, ss)
+  ssm <- putSS(ssm, ss)
   return(ssm)
 }
 
