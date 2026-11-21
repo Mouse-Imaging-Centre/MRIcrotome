@@ -39,7 +39,9 @@ validateVolume <- function(volume) {
 #' @param end Last slice. Can be NULL if slices explicitly specified.
 #' @param rotate Rotate each slice counterclockwise by 0 (the default), 90,
 #'   180 or 270 degrees. For 90 and 270 the slices change from wide to tall,
-#'   and the layout of the series follows.
+#'   and the layout of the series follows. With
+#'   \code{options(RMINC_flip_image = FALSE)} the image is drawn upside down,
+#'   so the same value turns it clockwise.
 #' @param flip Mirror each slice after the rotation: \code{"none"} (the
 #'   default), \code{"horizontal"} (left and right change places) or
 #'   \code{"vertical"} (top and bottom change places).
