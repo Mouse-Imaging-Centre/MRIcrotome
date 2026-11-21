@@ -56,17 +56,17 @@ contourLegendGrob <- function(levels,
   lty <- lty[floor(seq.int(from=1, to=length(lty), length.out = length(levels)))]
   lwd <- lwd[floor(seq.int(from=1, to=length(lwd), length.out = length(levels)))]
 
-  lgrobs <- pmap( list(row=1:length(levels), col=col, lty=lty, lwd=lwd), function(row,col,lty,lwd)
+  lgrobs <- pmap( list(row=seq_along(levels), col=col, lty=lty, lwd=lwd), function(row,col,lty,lwd)
     linesGrob(x=unit(c(0,1), "native"),
               y=unit(c(0.5,0.5), "native"),
               gp=gpar(col=col, lwd=lwd, lty=lty), vp=viewport(layout.pos.col = 1,layout.pos.row = row)) )
-  tgrobs <- map2(levels, 1:length(levels), ~ textGrob(.x, vp=viewport(layout.pos.row = .y,
+  tgrobs <- map2(levels, seq_along(levels), ~ textGrob(.x, vp=viewport(layout.pos.row = .y,
                                                                       layout.pos.col = 2),
                                                       gp = gp))
 
   if (!is.null(description)) {
     tgrobs <- c(tgrobs,
-                list(textGrob(description, y = unit(0.5, "npc"), rot=90, vp=viewport(layout.pos.row=1:length(levels),
+                list(textGrob(description, y = unit(0.5, "npc"), rot=90, vp=viewport(layout.pos.row=seq_along(levels),
                                                                                 layout.pos.col=3), gp = gp)))
   }
 
@@ -149,13 +149,12 @@ sliceLegendGrob <- function(low, high,
     ))
   }
 
-  #message("Length of grobsList:", length(grobList))
   if (!is.null(highText)) {
     grobList[[length(grobList)+1]] <-
       textGrob(highText, y = unit(0.5, "npc"), rot=90, gp=gp,
                vp=vpPath("layout", "innerH"))
   }
-  if (!is.null(lowText) & symmetric==TRUE) {
+  if (!is.null(lowText) && isTRUE(symmetric)) {
     grobList[[length(grobList)+1]] <-
       textGrob(lowText, y = unit(0.5, "npc"), rot=90, gp=gp,
                vp=vpPath("layout", "innerL"))

@@ -86,7 +86,7 @@ sliceSeries <- function(ssm=NULL,
     ssm <- initMetaSliceSeries()
     # it is the first time sliceSeries was called in a pipe,
     # so check that necessary args are present
-    if (is.null(nrow) & is.null(ncol)) stop("Must specify either nrow or ncol or both")
+    if (is.null(nrow) && is.null(ncol)) stop("Must specify either nrow or ncol or both")
 
     # if only one of nrow or ncol is specified, set the other to 1
     if (is.null(nrow)) nrow <- 1
@@ -100,21 +100,19 @@ sliceSeries <- function(ssm=NULL,
     ssm <- cloneSSM(ssm)
     ssm$seriesCounter = ssm$seriesCounter+1
   }
-  # add checking for slices vs nrow and ncol
 
-  nrow <- ifelse(is.null(nrow), ssm$ssl[[ssm$seriesCounter-1]]$nrow, nrow)
-  ncol <- ifelse(is.null(ncol), ssm$ssl[[ssm$seriesCounter-1]]$ncol, ncol)
+  if (is.null(nrow)) nrow <- ssm$ssl[[ssm$seriesCounter-1]]$nrow
+  if (is.null(ncol)) ncol <- ssm$ssl[[ssm$seriesCounter-1]]$ncol
 
   # initialize sliceSeries list; in all cases use the previous sliceSeries' values
   # if they were not specified here
   l <- list(nrow=nrow,
             ncol=ncol,
-            dimension=ifelse(is.null(dimension), ssm$ssl[[ssm$seriesCounter-1]]$dimension, dimension),
-            slices=slices, #if(is.null(slices) & (ssm$seriesCounter>1)) ssm$ssl[[ssm$seriesCounter-1]]$slices else slices,
-            #slices=if (is.null(slices) & ssm$seriesCounter>1) {ssm$ssl[[ssm$seriesCounter-1]]} else slices,
-            begin=if (is.null(begin) & ssm$seriesCounter>1) {ssm$ssl[[ssm$seriesCounter-1]]$begin} else {begin },
-            end=if (is.null(end) & ssm$seriesCounter>1) {ssm$ssl[[ssm$seriesCounter-1]]$end} else {end},
-            seriesVP=NULL, #seriesVP,
+            dimension=if (is.null(dimension)) ssm$ssl[[ssm$seriesCounter-1]]$dimension else dimension,
+            slices=slices,
+            begin=if (is.null(begin) && ssm$seriesCounter>1) ssm$ssl[[ssm$seriesCounter-1]]$begin else begin,
+            end=if (is.null(end) && ssm$seriesCounter>1) ssm$ssl[[ssm$seriesCounter-1]]$end else end,
+            seriesVP=NULL,
             order=list(),
             legendInfo=list(),
             legendOrder=list(),
@@ -204,8 +202,6 @@ putSS <- function(ssm, ss) {
 
 makeSlices <- function(ss, volume) {
   validateVolume(volume)
-  #message("seriesVP", ss$seriesVP)
-  #message("slices", ss$slices)
   if (is.null(ss$seriesVP)) {
     sliceDims <- dim(volume)[-ss$dimension]
     gl <- grid.layout(nrow=ss$nrow, ncol=ss$ncol,
@@ -464,7 +460,7 @@ legend <- function(ssm, description=NULL, global=FALSE, digits=3) {
   return(ssm)
 }
 
-slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent = FALSE, symmetric=FALSE,
+slice <- function(ssm, volume, low, high, col, underTransparent = FALSE, symmetric=FALSE,
                   rCol=defaultRCol(), alpha=NULL,name=NULL, box=FALSE, interpolate = TRUE) {
   ss <- getSS(ssm)
   ss <- makeSlices(ss, volume)
@@ -575,7 +571,6 @@ contours <- function(ssm, volume, levels=NULL, col="red", lty=1, lwd=1, name="co
     }
   }
   ss[[name]] <- sliceList
-  #ss[["legendInfo"]][[name]] <- list(low=low, high=high, col=col, rCol=rCol, symmetric=symmetric)
   ss[["order"]][[length(ss$order)+1]] <- name
   ss[["legendInfo"]][[name]] <- list(type="contour", levels=levels, col=col, lty=lty, lwd=lwd,
                                      labels=labels)
@@ -703,15 +698,14 @@ sliceIndicator <- function(ssm, volume, dimension, bgGrob, indVP, lineColour="gr
   sliceDims <- dim(volume)[-dimension]
   overVP <- viewport(layout = grid.layout(1, 1, widths = sliceDims[1],
                                           heights = sliceDims[2],
-                                          respect = T))
-  #indSlice <- sliceImage(volume, dimension,slice, low, high, col=col, vp=indVP)
+                                          respect = TRUE))
   lineList <- list()
   counter <- 1
   for (i in 1:ss$nrow) {
     for (j in 1:ss$ncol) {
       # a line through the centre of the slice's voxels (slice s fills native
       # coordinates s-1 to s), on the same side as the flipped image
-      if ( (ss$dimension == 2 & dimension == 1) |
+      if ( (ss$dimension == 2 && dimension == 1) ||
            (ss$dimension == 1) ) {
         xd <- c(rep(ss$slices[counter] - 0.5, 2))
         yd <- c(0,sliceDims[2])
@@ -723,7 +717,6 @@ sliceIndicator <- function(ssm, volume, dimension, bgGrob, indVP, lineColour="gr
                                        y = yd,
                                        default.units = "native",
                                        vp=indVP, gp=gpar(col=lineColour))
-      #message(ss$slices[counter])
       counter <- counter+1
     }
   }
@@ -749,7 +742,7 @@ assembleLegends <- function(ss, gp = gpar()) {
   legendViewport <- viewport(layout=grid.layout(nrow=nrows,
                                                 ncol=1, heights=unit(widthSize, widthUnits)))
   legendGrobs <- list()
-  for (i in 1:length(ss$legendOrder)) {
+  for (i in seq_along(ss$legendOrder)) {
     li <- ss$legendInfo[[ss$legendOrder[[i]]]]
     if (li$type == "slice")
       gl <- gList(sliceLegendGrob(li$low, li$high, li$col,
@@ -787,29 +780,11 @@ grobifySliceSeries <- function(ss, sliceBg = "black") {
   grobList <- if (is.null(sliceBg) || is.na(sliceBg)) list()
               else list(rectGrob(gp=gpar(fill=sliceBg)))
 
-  for (i in 1:length(ss$order)) {
-    grobList <- c(grobList, ss[[ss$order[[i]]]])
+  for (layer in ss$order) {
+    grobList <- c(grobList, ss[[layer]])
   }
 
-  gT <- gTree(children=do.call(gList, grobList), vp=ss$seriesVP)
-  #gT <- gTree(children=do.call(gList, grobList), vp=ss$seriesVP, childrenvp=ss$anatomy[[1]][[1]]$vp)
-  #gT <- gTree(children=do.call(gList, grobList), childrenvp=ss$seriesVP)
-  #gT <- gTree(do.call(gList, grobList), vp=ss$seriesVP)
-  #gT <- gList(grobList, vp=ss$seriesVP)
-
-  # if (length(ss$legendOrder) >0) {
-  #   vO <- viewport(layout = grid.layout(1,2,
-  #                                       widths=unit(c(1,4), c("null", "lines"))))
-  #
-  #   legend <- assembleLegends(ss)
-  #
-  #   g1 <- gTree(vp=viewport(layout.pos.col = 1), children=gList(gT))
-  #   g2 <- gTree(vp=viewport(layout.pos.col = 2), children=gList(legend))
-  #
-  #   return(gTree(children=gList(g1, g2), vp=vO))
-  # } else {
-    return(gT)
-  #}
+  gTree(children=do.call(gList, grobList), vp=ss$seriesVP)
 }
 
 #' Turn the slice series into grobs
