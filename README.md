@@ -7,13 +7,17 @@ statistical overlays, contours, legends, and titles.
 
 ## Installation
 
-MRIcrotome depends on [RMINC](https://github.com/Mouse-Imaging-Centre/RMINC).
-Install RMINC first, then install MRIcrotome with `devtools`:
+Install MRIcrotome from GitHub:
 
 ```r
-# install.packages("devtools")
-devtools::install_github("Mouse-Imaging-Centre/MRIcrotome")
+# install.packages("remotes")
+remotes::install_github("Mouse-Imaging-Centre/MRIcrotome")
 ```
+
+MRIcrotome draws plain R arrays, so it does not need
+[RMINC](https://github.com/Mouse-Imaging-Centre/RMINC). It is the plotting
+partner of RMINC: to draw MINC files, install RMINC (which needs the MINC
+toolkit) and read the volumes with `mincArray(mincGetVolume(...))`.
 
 ## Usage
 
