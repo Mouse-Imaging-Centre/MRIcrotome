@@ -1,7 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^\.github$
-^vignettes/figures\.html$
 ^data-raw$
 ^_pkgdown\.yml$
 ^docs$
