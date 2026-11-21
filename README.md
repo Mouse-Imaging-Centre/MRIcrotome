@@ -188,6 +188,9 @@ dev.off()
 | `anatomySliceIndicator()` | Add an anatomy-based slice position indicator |
 | `contourSliceIndicator()` | Add a contour-based slice position indicator |
 
+`library(MRIcrotome)` masks `graphics::legend()`. To add a legend to a base
+graphics plot in the same session, call `graphics::legend()`.
+
 ## License
 
 BSD 3-Clause. See the `DESCRIPTION` file for details.

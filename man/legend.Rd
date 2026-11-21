@@ -35,6 +35,16 @@ are taken from the immediately preceding element. A second \code{legend()}
 call for the same element replaces its description and \code{digits}; it
 does not add a second legend.
 }
+\section{Name clash with the graphics package}{
+
+When MRIcrotome is attached (\code{library(MRIcrotome)}), this
+\code{legend()} masks \code{\link[graphics]{legend}}, which adds a
+legend to a base graphics plot. R says so when the package is attached.
+To use the base graphics function in the same session, call it as
+\code{graphics::legend()}. Code that does not attach MRIcrotome can call
+this one as \code{MRIcrotome::legend()}.
+}
+
 \examples{
 v <- exampleVolumes()
 sliceSeries(nrow = 4, begin = 10, end = 40) \%>\%
