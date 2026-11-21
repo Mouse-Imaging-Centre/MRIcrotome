@@ -1,0 +1,47 @@
+#' Example volumes for the examples and the vignette
+#'
+#' Returns three volumes in the same 50 x 50 x 50 voxel space, so that the
+#' examples and the vignette run without MINC files or RMINC.
+#'
+#' @details \code{anatomy} is real data: a cut-out around the cerebellum of an
+#'   ex-vivo mouse brain MRI with 0.056 mm voxels, from the RMINC test data
+#'   (\url{https://github.com/Mouse-Imaging-Centre/RMINC-test-data},
+#'   \code{brain_cut_out.mnc}, BSD-3-Clause). Its values go from about 190 to
+#'   2420; white matter is dark (about 600 to 1030) and grey matter is light.
+#'
+#'   \code{stats} is made up: a smooth map that looks like t-statistics, with
+#'   one positive and one negative peak (about +6 and -5) on a low background.
+#'
+#'   \code{labels} divides \code{anatomy} by intensity: 0 outside the tissue,
+#'   1 white matter and 2 grey matter.
+#'
+#'   The volumes are the same each time; the function does not use the random
+#'   number generator.
+#'
+#' @return A list with the 3D arrays \code{anatomy}, \code{stats} and
+#'   \code{labels}.
+#' @export
+#'
+#' @examples
+#' v <- exampleVolumes()
+#' str(v)
+#' sliceSeries(nrow = 2, ncol = 3, begin = 10, end = 40) %>%
+#'   anatomy(v$anatomy, low = 600, high = 1400) %>%
+#'   overlay(v$stats, low = 2, high = 6, symmetric = TRUE) %>%
+#'   legend("t-statistics") %>%
+#'   draw()
+exampleVolumes <- function() {
+  anat <- cerebellum + 0   # stored as integers; return doubles
+  d <- dim(anat)
+  x <- slice.index(anat, 1)
+  y <- slice.index(anat, 2)
+  z <- slice.index(anat, 3)
+  blob <- function(centre, width)
+    exp(-((x - centre[1])^2 + (y - centre[2])^2 + (z - centre[3])^2) / (2 * width^2))
+  stats <- 6.5 * blob(c(18, 30, 32), 5) - 5.5 * blob(c(34, 20, 18), 4) +
+    0.8 * sin(x / 3) * cos(y / 4) * sin(z / 5)
+  labels <- array(0L, d)
+  labels[anat >= 600] <- 1L
+  labels[anat >= 1030] <- 2L
+  list(anatomy = anat, stats = stats, labels = labels)
+}
