@@ -1,12 +1,12 @@
 # Visual regression tests: each figure is drawn to an SVG and compared with
-# the snapshot in _snaps/visual/. When a change moves pixels on purpose, check
-# the new figures with testthat::snapshot_review() and accept them.
-skip_if_not_installed("vdiffr")
+# the snapshot in _snaps/visual/ (see helper-visual.R). When a change moves
+# pixels on purpose, check the new figures with testthat::snapshot_review()
+# and accept them.
 
 v <- testVolumes()
 
 test_that("column layout: anatomy, symmetric overlay and legend", {
-  vdiffr::expect_doppelganger("column-overlay-legend", function() {
+  expect_figure("column-overlay-legend", function() {
     sliceSeries(nrow = 2, ncol = 3, begin = 4, end = 20) %>%
       anatomy(v$anat, low = 0, high = 3000) %>%
       overlay(v$stats, low = 2, high = 5, symmetric = TRUE) %>%
@@ -16,7 +16,7 @@ test_that("column layout: anatomy, symmetric overlay and legend", {
 })
 
 test_that("row layout: two series with titles", {
-  vdiffr::expect_doppelganger("row-titles", function() {
+  expect_figure("row-titles", function() {
     sliceSeries(nrow = 1, ncol = 4, begin = 4, end = 20) %>%
       anatomy(v$anat, low = 0, high = 3000) %>%
       addtitle("Anatomy") %>%
@@ -30,7 +30,7 @@ test_that("row layout: two series with titles", {
 })
 
 test_that("contours by level and by label, with legends", {
-  vdiffr::expect_doppelganger("contours", function() {
+  expect_figure("contours", function() {
     sliceSeries(nrow = 1, ncol = 3, begin = 6, end = 16) %>%
       anatomy(v$anat, low = 0, high = 3000) %>%
       contours(v$anat, levels = c(1500, 2500), col = c("green", "red"), name = "c1") %>%
@@ -41,14 +41,14 @@ test_that("contours by level and by label, with legends", {
 })
 
 test_that("slice indicators", {
-  vdiffr::expect_doppelganger("anatomy-slice-indicator", function() {
+  expect_figure("anatomy-slice-indicator", function() {
     sliceSeries(nrow = 1, ncol = 3, begin = 6, end = 18) %>%
       anatomy(v$anat, low = 0, high = 3000) %>%
       overlay(v$stats, low = 2, high = 5) %>%
       anatomySliceIndicator(v$anat, 0, 3000) %>%
       draw()
   })
-  vdiffr::expect_doppelganger("contour-slice-indicator", function() {
+  expect_figure("contour-slice-indicator", function() {
     sliceSeries(nrow = 1, ncol = 3, begin = 6, end = 18, dimension = 3) %>%
       anatomy(v$anat, low = 0, high = 3000) %>%
       contourSliceIndicator(v$anat, levels = 1500, lineColour = "white") %>%
