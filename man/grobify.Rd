@@ -9,7 +9,8 @@ grobify(
   layout = "column",
   titlePars = gpar(),
   legendPars = gpar(),
-  bgCol = NULL
+  bgCol = NULL,
+  sliceBg = "black"
 )
 }
 \arguments{
@@ -26,6 +27,11 @@ useful for setting e.g. \code{fontsize} and \code{col}}
 
 \item{bgCol}{Either NULL or a string indicating what colour the figure background
 should be.}
+
+\item{sliceBg}{The colour of the rectangle behind the slices of each slice
+series. Defaults to \code{"black"}. Use \code{NA} or \code{NULL} for no
+rectangle, so that \code{bgCol} (or the page) shows around and through
+the slices.}
 }
 \value{
 A gTree object with the figure, to be drawn with \link{grid.draw}
