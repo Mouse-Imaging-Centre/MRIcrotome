@@ -42,3 +42,10 @@ test_that("a grid with more cells than slices leaves the last cells empty", {
   expect_warning(sliceSeries(nrow = 1, ncol = 2, slices = c(4, 8, 12)) %>% anatomy(v$anat, 0, 3000),
                  "Only the first 2 of the 3 slices")
 })
+
+test_that("a slice with no variation gets no contours and no warning", {
+  v <- testVolumes()   # label 1 is in slices 6 to 10 of dimension 2
+  expect_no_warning(g <- sliceContours(v$labels == 1, 2, 15, levels = 0.5))
+  expect_length(g, 0)
+  expect_length(sliceContours(v$labels == 1, 2, 8, levels = 0.5), 1)
+})
