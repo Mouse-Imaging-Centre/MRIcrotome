@@ -14,3 +14,38 @@ test_that("nrow and ncol must be whole numbers of 1 or more", {
   expect_error(sliceSeries(nrow = 1, ncol = 2.5), "'ncol' must be one whole number")
   expect_error(sliceSeries(nrow = c(1, 2)), "'nrow' must be one whole number")
 })
+
+# the missing nrow or ncol comes from the number of slices (#46 item 2.3)
+test_that("nrow or ncol is calculated from slices", {
+  v <- testVolumes()
+  grid <- function(ssm) c(ssm$ssl[[ssm$seriesCounter]]$nrow, ssm$ssl[[ssm$seriesCounter]]$ncol)
+  expect_equal(grid(sliceSeries(slices = c(5, 10, 15))), c(1, 3))
+  expect_equal(grid(sliceSeries(nrow = 1, slices = c(5, 10, 15))), c(1, 3))
+  expect_equal(grid(sliceSeries(ncol = 2, slices = c(2, 4, 6, 8))), c(2, 2))
+  expect_equal(grid(sliceSeries(nrow = 2, ncol = 2, slices = 1:4)), c(2, 2))
+  expect_no_warning(sliceSeries(nrow = 1, slices = c(5, 10, 15)) %>% anatomy(v$anat, 0, 3000))
+  # a later series keeps the rows of the series before it
+  two <- sliceSeries(nrow = 2, ncol = 2) %>% anatomy(v$anat, 0, 3000) %>% sliceSeries(slices = 1:6)
+  expect_equal(grid(two), c(2, 3))
+  expect_error(sliceSeries(), "Must specify either nrow or ncol")
+})
+
+test_that("a grid with more cells than slices leaves the last cells empty", {
+  v <- testVolumes()
+  pdf(NULL); on.exit(dev.off())
+  expect_no_warning(ssm <- sliceSeries(nrow = 2, slices = c(4, 8, 12, 16, 20)) %>%
+                      anatomy(v$anat, 0, 3000) %>% overlay(v$stats, 2, 5) %>%
+                      contours(v$labels, labels = 1))
+  expect_equal(c(ssm$ssl[[1]]$nrow, ssm$ssl[[1]]$ncol), c(2, 3))
+  expect_no_warning(draw(ssm))
+  # more slices than cells: the extra ones are dropped, with a warning
+  expect_warning(sliceSeries(nrow = 1, ncol = 2, slices = c(4, 8, 12)) %>% anatomy(v$anat, 0, 3000),
+                 "Only the first 2 of the 3 slices")
+})
+
+test_that("a slice with no variation gets no contours and no warning", {
+  v <- testVolumes()   # label 1 is in slices 6 to 10 of dimension 2
+  expect_no_warning(g <- sliceContours(v$labels == 1, 2, 15, levels = 0.5))
+  expect_length(g, 0)
+  expect_length(sliceContours(v$labels == 1, 2, 8, levels = 0.5), 1)
+})

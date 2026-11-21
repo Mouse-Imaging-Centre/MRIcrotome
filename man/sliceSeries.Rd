@@ -18,7 +18,10 @@ sliceSeries(
 \item{ssm}{Provided as part of an ongoing pipe, not usually specified by user}
 
 \item{slices}{A vector of integers representing which slices to use. Can be
-NULL, in which case nrow and ncol together with begin and end are used.}
+NULL, in which case nrow and ncol together with begin and end are used.
+If you give \code{slices} and only one of \code{nrow} or \code{ncol},
+the other is calculated from the number of slices. If you give neither,
+the slices go in one row (or in the rows of the previous series).}
 
 \item{nrow}{Rows in the slice series. Set to 1 if NULL and ncol specified.}
 
