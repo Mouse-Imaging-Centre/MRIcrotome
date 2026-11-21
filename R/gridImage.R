@@ -104,8 +104,10 @@ sliceContours <- function(volume,
   if (is.null(levels)) stop("must specify levels")
   s <- getSlice(volume, slice, dimension)
   d <- dim(s$slice)
-  # an empty cell of the grid (no slice) has no contours
-  if (all(is.na(s$slice))) return(gList())
+  # an empty cell of the grid (no slice) or a flat slice has no contours (R
+  # 4.7 warns "all z values are equal" for a flat slice, e.g. one without the
+  # label of contours(labels = ))
+  if (length(unique(s$slice[!is.na(s$slice)])) < 2) return(gList())
 
   colVector <- col[floor(seq.int(from=1, to=length(col), length.out = length(levels)))]
   ltyVector <- lty[floor(seq.int(from=1, to=length(lty), length.out = length(levels)))]
