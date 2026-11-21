@@ -39,6 +39,14 @@ The slices series for continuation down the pipe.
 \description{
 Adds the anatomy slices, or anything that can serve as an underlay.
 }
+\details{
+If \code{volume} is NULL, the most recent earlier \code{anatomy()}
+call with a volume is repeated for the current slice series, with that
+call's volume, \code{low}, \code{high}, \code{col} and \code{alpha}. The
+slices, rows, columns and dimension come from the current series. Give
+\code{low}, \code{high}, \code{col} or \code{alpha} to change only that
+value.
+}
 \examples{
 \dontrun{
 sliceSeries(nrow = 1, begin=200, end=300) \%>\%
