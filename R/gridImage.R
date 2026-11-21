@@ -14,8 +14,6 @@ sliceImage <- function(volume,
                        interpolate = TRUE,
                        vp=NULL) {
 
-  if (length(dim(volume)) != 3)
-    stop("volume must be 3 dimensional, you may be missing a call to mincArray")
   s <- getSlice(volume, slice, dimension)
   if (reverse) {
     m <- -1
@@ -25,55 +23,46 @@ sliceImage <- function(volume,
   }
 
   imRange <- getRange(volume, low, high)
-  s$slice <- scaleSlice(s$slice, imRange[1] * m, imRange[2] *
+  s <- scaleSlice(s, imRange[1] * m, imRange[2] *
                           m, underTransparent = underTransparent)
-  sliceDims <- dim(s$slice)
+  sliceDims <- dim(s)
 
   if (!is.null(alpha)) {
-    if (is.numeric(s$slice)) {
+    if (is.numeric(s)) {
       col <- setAlpha(col, alpha)
       rCol <- setAlpha(rCol, alpha)
     }
     else {
-      s$slice[!is.na(s$slice)] <- setAlpha(s$slice[!is.na(s$slice)], alpha)
-      dim(s$slice) <- sliceDims
+      s[!is.na(s)] <- setAlpha(s[!is.na(s)], alpha)
+      dim(s) <- sliceDims
     }
   }
 
-  #if (!all(is.na(s$slice))) {
-  if (is.numeric(s$slice)) {
-    colourDepth <- length(col)
-    paletteScaledSlice <- scaleSliceToPalette(s$slice, imRange[1],
+  if (is.numeric(s)) {
+    paletteScaledSlice <- scaleSliceToPalette(s, imRange[1],
                                               imRange[2], col)
     colourizedSlice <- col[paletteScaledSlice]
     dim(colourizedSlice) <- sliceDims
   }
   else {
-    colourizedSlice <- s$slice
+    colourizedSlice <- s
   }
-    flip_option <- getOption("RMINC_flip_image", TRUE)
-    if (flip_option)
-      colourizedSlice <- colourizedSlice[, sliceDims[2]:1]
-    colourizedSlice <- t(colourizedSlice)
-    #rasterImage(colourizedSlice, xleft = 0, xright = sliceDims[1],
-    #            ytop = 0, ybottom = sliceDims[2])
-    g <- rasterGrob(colourizedSlice, vp=vp, width = unit(sliceDims[1], "native"),
-                    height = unit(sliceDims[2], "native"), interpolate = interpolate) #
-    #grid.raster(colourizedSlice)
-  #
-  #return(invisible(NULL))
-    if (symmetric) {
-      return(gList(g, sliceImage(volume, dimension,
-                                 slice=slice,
-                                 low = low,
-                                 high=high,
-                                 reverse=TRUE,
-                                 underTransparent=TRUE,
-                                 col=rCol, vp=vp, interpolate = interpolate)))
-    } else {
-  #return(gList(g, rectGrob(gp=gpar(col="black", fill="#FFFFFF00"), vp=vp)))
-      return(gList(g))
-    }
+  if (getOption("RMINC_flip_image", TRUE))
+    colourizedSlice <- colourizedSlice[, sliceDims[2]:1]
+  colourizedSlice <- t(colourizedSlice)
+  g <- rasterGrob(colourizedSlice, vp=vp, width = unit(sliceDims[1], "native"),
+                  height = unit(sliceDims[2], "native"), interpolate = interpolate)
+  if (symmetric) {
+    # the negative half, drawn with the reverse colour scale
+    return(gList(g, sliceImage(volume, dimension,
+                               slice=slice,
+                               low = low,
+                               high=high,
+                               reverse=TRUE,
+                               underTransparent=TRUE,
+                               col=rCol, vp=vp, interpolate = interpolate)))
+  }
+  gList(g)
 }
 
 # Colours with their opacity set to alpha (0 = transparent, 1 = opaque). Takes
@@ -103,7 +92,7 @@ sliceContours <- function(volume,
                           lwd=1) {
   if (is.null(levels)) stop("must specify levels")
   s <- getSlice(volume, slice, dimension)
-  d <- dim(s$slice)
+  d <- dim(s)
 
   colVector <- col[floor(seq.int(from=1, to=length(col), length.out = length(levels)))]
   ltyVector <- lty[floor(seq.int(from=1, to=length(lty), length.out = length(levels)))]
@@ -111,7 +100,7 @@ sliceContours <- function(volume,
 
 
   # voxel i fills native coordinates i-1 to i, so its centre is at i - 0.5
-  lines <- contourLines(seq_len(d[1]) - 0.5, seq_len(d[2]) - 0.5, s$slice, levels=levels) %>%
+  lines <- contourLines(seq_len(d[1]) - 0.5, seq_len(d[2]) - 0.5, s, levels=levels) %>%
     map( ~ linesGrob(.$x, flipNativeY(.$y, d[2]), vp=vp, default.units = "native",
                      gp=gpar(col=colVector[match(.$level, levels)],
                              lty=ltyVector[match(.$level, levels)],
@@ -225,24 +214,11 @@ scaleSliceToPalette <- function(slice, low, high, palette){
   return(slice)
 }
 
+# one slice of a 3D volume (validateVolume() has checked the volume)
 getSlice <- function(volume, slice, dimension) {
-  d <- dim(volume)
-  if(length(d) != 3) stop("volume must be 3 dimensional")
-
-  if (dimension == 1) {
-    outs <- volume[slice,,]
-    outa <- d[3]/d[2]
-  }
-  else if (dimension == 2) {
-    outs <- volume[,slice,]
-    outa <- d[3]/d[1]
-  }
-  else if (dimension == 3) {
-    outs <- volume[,,slice]
-    outa <- d[2]/d[1]
-  }
-  else if (dimension > 3) {
-    stop("Can only handle three dimensions at the moment")
-  }
-  return(list(slice=outs, asp=outa))
+  switch(as.character(dimension),
+         "1" = volume[slice, , ],
+         "2" = volume[, slice, ],
+         "3" = volume[, , slice],
+         stop("dimension must be 1, 2, or 3"))
 }
