@@ -15,6 +15,7 @@ titles.
 Useful links:
 \itemize{
   \item \url{https://github.com/Mouse-Imaging-Centre/MRIcrotome}
+  \item \url{https://mouse-imaging-centre.github.io/MRIcrotome/}
   \item Report bugs at \url{https://github.com/Mouse-Imaging-Centre/MRIcrotome/issues}
 }
 
