@@ -24,6 +24,13 @@ jobs:
       matrix:
         config:
           - {os: ubuntu-latest, r: 'release'}
+          - {os: ubuntu-latest, r: 'devel', http-user-agent: 'release'}
+          - {os: ubuntu-latest, r: 'oldrel-1'}
+          # the oldest R that current purrr and testthat support; this job is
+          # the evidence for "Depends: R (>= 4.1)" in DESCRIPTION
+          - {os: ubuntu-latest, r: '4.1'}
+          - {os: macos-latest, r: 'release'}
+          - {os: windows-latest, r: 'release'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -42,6 +49,7 @@ jobs:
       - uses: r-lib/actions/setup-r@v2
         with:
           r-version: ${{ matrix.config.r }}
+          http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
       - uses: r-lib/actions/setup-r-dependencies@v2
