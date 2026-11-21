@@ -760,8 +760,10 @@ assembleSidePanel <- function(ss, gp = gpar()) {
         children=do.call(gList, children))
 }
 
-grobifySliceSeries <- function(ss) {
-  grobList <- list(rectGrob(gp=gpar(fill="black"))) # need to make the black rectangle optional or controlable
+grobifySliceSeries <- function(ss, sliceBg = "black") {
+  # the background behind the slices; NULL or NA for none
+  grobList <- if (is.null(sliceBg) || is.na(sliceBg)) list()
+              else list(rectGrob(gp=gpar(fill=sliceBg)))
 
   for (i in 1:length(ss$order)) {
     grobList <- c(grobList, ss[[ss$order[[i]]]])
@@ -802,6 +804,10 @@ grobifySliceSeries <- function(ss) {
 #' useful for setting e.g. `fontsize` and `col`
 #' @param bgCol Either NULL or a string indicating what colour the figure background
 #' should be.
+#' @param sliceBg The colour of the rectangle behind the slices of each slice
+#'   series. Defaults to \code{"black"}. Use \code{NA} or \code{NULL} for no
+#'   rectangle, so that \code{bgCol} (or the page) shows around and through
+#'   the slices.
 #' 
 #' @return A gTree object with the figure, to be drawn with [grid.draw]
 #' @export
@@ -815,18 +821,20 @@ grobifySliceSeries <- function(ss) {
 #'   anatomySliceIndicator(anatVol, 700, 1400) %>%
 #'   grobify()
 #' }
-grobify <- function(ssm, layout="column", titlePars = gpar(), legendPars = gpar(), bgCol = NULL) {
+grobify <- function(ssm, layout="column", titlePars = gpar(), legendPars = gpar(), bgCol = NULL,
+                    sliceBg = "black") {
   for (i in seq_along(ssm$ssl)) {
     if (length(ssm$ssl[[i]]$order) == 0)
       stop("Slice series ", i, " has no layers. Add anatomy(), overlay() or ",
            "contours() after sliceSeries().")
   }
   layout <- match.arg(layout, c("column", "row"))
-  if (layout=="column") grobifyByColumn(ssm, titlePars, legendPars, bgCol)
-  else grobifyByRow(ssm, titlePars, legendPars, bgCol)
+  if (layout=="column") grobifyByColumn(ssm, titlePars, legendPars, bgCol, sliceBg)
+  else grobifyByRow(ssm, titlePars, legendPars, bgCol, sliceBg)
 }
 
-grobifyByRow <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol = NULL) {
+grobifyByRow <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol = NULL,
+                         sliceBg = "black") {
   nseries <- length(ssm$ssl)
   sides <- sapply(ssm$ssl, function(x) if (length(x$title) > 0) x$titleSide %||% "right" else NA_character_)
   haveLeft <- any(sides == "left", na.rm = TRUE)
@@ -847,7 +855,7 @@ grobifyByRow <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol = N
   for (i in 1:nseries) {
     ss <- ssm$ssl[[i]]
     gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.row = i, layout.pos.col = sliceCol),
-                                children=gList(grobifySliceSeries(ss)))
+                                children=gList(grobifySliceSeries(ss, sliceBg)))
     if (!is.na(sides[i])) {
       gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.row = i,
                                               layout.pos.col = if (sides[i] == "left") 1 else rightCol),
@@ -869,7 +877,8 @@ grobifyByRow <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol = N
   return(gTree(children=do.call(gList, gs), vp=vA))
 }
 
-grobifyByColumn <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol = NULL) {
+grobifyByColumn <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol = NULL,
+                            sliceBg = "black") {
   nseries <- length(ssm$ssl)
 
   gs <- list()
@@ -895,7 +904,7 @@ grobifyByColumn <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol 
     }
     # add the slices
     gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.col = j, layout.pos.row = row),
-                     children=gList(grobifySliceSeries(ssm$ssl[[i]])))
+                     children=gList(grobifySliceSeries(ssm$ssl[[i]], sliceBg)))
     widths[[j]] <- unit(1, "null")
     j <- j+1
     # add the legend(s) and/or indicator if present
@@ -928,6 +937,8 @@ grobifyByColumn <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol 
 #'   by the user
 #' @param layout Either \code{"column"} (the default) or \code{"row"}: how to
 #'   lay out the figure.
+#' @param ... Other arguments for \code{\link{grobify}}, such as
+#'   \code{titlePars}, \code{legendPars}, \code{bgCol} and \code{sliceBg}.
 #'
 #' @return invisible NULL
 #' @export
@@ -940,10 +951,10 @@ grobifyByColumn <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol 
 #'   legend("t-statistics") %>%
 #'   draw()
 #' }
-draw <- function(ssm, layout="column") {
+draw <- function(ssm, layout="column", ...) {
   grid.newpage()
   # a small margin so that labels at the figure edge are not flush with the page
-  grid.draw(gTree(children=gList(grobify(ssm, layout=layout)),
+  grid.draw(gTree(children=gList(grobify(ssm, layout=layout, ...)),
                   vp=viewport(width = 0.95, height = 0.95)))
   invisible(NULL)
 }

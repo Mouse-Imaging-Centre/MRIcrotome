@@ -4,7 +4,7 @@
 \alias{draw}
 \title{Draw a slice series figure}
 \usage{
-draw(ssm, layout = "column")
+draw(ssm, layout = "column", ...)
 }
 \arguments{
 \item{ssm}{The slice series info, usually passed along the pipe and specified
@@ -12,6 +12,9 @@ by the user}
 
 \item{layout}{Either \code{"column"} (the default) or \code{"row"}: how to
 lay out the figure.}
+
+\item{...}{Other arguments for \code{\link{grobify}}, such as
+\code{titlePars}, \code{legendPars}, \code{bgCol} and \code{sliceBg}.}
 }
 \value{
 invisible NULL
