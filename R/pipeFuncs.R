@@ -100,7 +100,6 @@ sliceSeries <- function(ssm=NULL,
     ssm <- cloneSSM(ssm)
     ssm$seriesCounter = ssm$seriesCounter+1
   }
-  # add checking for slices vs nrow and ncol
 
   if (is.null(nrow)) nrow <- ssm$ssl[[ssm$seriesCounter-1]]$nrow
   if (is.null(ncol)) ncol <- ssm$ssl[[ssm$seriesCounter-1]]$ncol
@@ -113,7 +112,7 @@ sliceSeries <- function(ssm=NULL,
             slices=slices,
             begin=if (is.null(begin) && ssm$seriesCounter>1) ssm$ssl[[ssm$seriesCounter-1]]$begin else begin,
             end=if (is.null(end) && ssm$seriesCounter>1) ssm$ssl[[ssm$seriesCounter-1]]$end else end,
-            seriesVP=NULL, #seriesVP,
+            seriesVP=NULL,
             order=list(),
             legendInfo=list(),
             legendOrder=list(),
