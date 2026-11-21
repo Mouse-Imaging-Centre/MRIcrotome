@@ -4,7 +4,7 @@
 \alias{legend}
 \title{Add a legend}
 \usage{
-legend(ssm, description = NULL, global = FALSE)
+legend(ssm, description = NULL, global = FALSE, digits = 3)
 }
 \arguments{
 \item{ssm}{The slice series info, usually passed along the pipe and specified
@@ -17,6 +17,10 @@ NULL, in which case the colour bar is shown without a description.}
 the legend spans all rows as one shared legend for the whole figure
 instead of sitting beside its own slice series. In column layout a legend
 already spans the full height, so this has no effect there.}
+
+\item{digits}{The smallest number of significant digits in the numbers of a
+colour bar. The numbers are rounded to this, but the whole-number part is
+never rounded (so 1400 stays 1400). Defaults to 3.}
 }
 \value{
 The slices series for continuation down the pipe.
