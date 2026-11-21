@@ -14,3 +14,15 @@ test_that("equal low and high draw the first colour with a warning", {
   r <- as.matrix(ov$ssl[[1]][[ov$ssl[[1]]$order[[1]]]][[1]][[1]]$raster)
   expect_equal(sort(unique(as.vector(r)), na.last = TRUE), c("red", NA))
 })
+
+test_that("a symmetric overlay with low == high colours only voxels beyond the value", {
+  v <- testVolumes()
+  expect_warning(ssm <- sliceSeries(nrow = 1, ncol = 1, slices = 12) %>%
+                   overlay(v$stats, 3, 3, symmetric = TRUE, col = "red", rCol = "blue"),
+                 "only one value")
+  g <- ssm$ssl[[1]][[ssm$ssl[[1]]$order[[1]]]][[1]]
+  slice12 <- v$stats[, 12, ]
+  pos <- as.vector(as.matrix(g[[1]]$raster)); neg <- as.vector(as.matrix(g[[2]]$raster))
+  expect_equal(sum(!is.na(pos)), sum(slice12 >= 3))
+  expect_equal(sum(!is.na(neg)), sum(slice12 <= -3))
+})

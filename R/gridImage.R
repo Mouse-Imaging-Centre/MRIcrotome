@@ -24,7 +24,8 @@ sliceImage <- function(volume,
 
   imRange <- getRange(volume, low, high)
   s <- scaleSlice(s, imRange[1] * m, imRange[2] *
-                          m, underTransparent = underTransparent)
+                          m, underTransparent = underTransparent,
+                        reverse = reverse)
   sliceDims <- dim(s)
 
   if (!is.null(alpha)) {
@@ -165,7 +166,8 @@ getRange <- function (volume, low = NULL, high = NULL) {
   c(low, high)
 }
 
-scaleSlice <- function(slice, low=NULL, high=NULL, underTransparent=TRUE) {
+scaleSlice <- function(slice, low=NULL, high=NULL, underTransparent=TRUE,
+                       reverse=FALSE) {
   if (is.character(slice))
     return(slice)
 
@@ -176,8 +178,9 @@ scaleSlice <- function(slice, low=NULL, high=NULL, underTransparent=TRUE) {
     high <- quantile(slice, 0.7)
   }
 
-  # invert if it's a negative scale
-  if (high < low) {
+  # invert if it's a negative scale; the negative half of a symmetric scale
+  # (reverse) is negative also when low == high, where high < low is FALSE
+  if (high < low || (reverse && high == low)) {
     slice <- slice*-1
     high <- high*-1
     low <- low*-1
