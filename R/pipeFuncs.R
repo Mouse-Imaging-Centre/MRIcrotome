@@ -54,6 +54,16 @@ sliceSeries <- function(ssm=NULL,
                         begin=NULL,
                         end=NULL) {
 
+  checkCount <- function(x, arg) {
+    if (!is.null(x) && (!is.numeric(x) || length(x) != 1 || is.na(x) || x < 1 || x != round(x)))
+      stop("'", arg, "' must be one whole number of 1 or more")
+  }
+  checkCount(nrow, "nrow")
+  checkCount(ncol, "ncol")
+  if (!is.null(dimension) && (!is.numeric(dimension) || length(dimension) != 1 ||
+                              is.na(dimension) || !(dimension %in% 1:3)))
+    stop("'dimension' must be 1, 2, or 3")
+
   # ssm (the first arg) is provided if this is part of an ongoing pipe, but should be
   # null if this is the first initialization
   if (is.null(ssm)) {
