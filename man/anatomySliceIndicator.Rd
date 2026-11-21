@@ -44,12 +44,11 @@ Adds an indicator of the slices used in the slice series, displayed on top of
 an anatomy slice.
 }
 \examples{
-\dontrun{
-sliceSeries(nrow=5, begin=150, end=250) \%>\%
-  anatomy(anatVol, low=700, high=1400) \%>\%
-  overlay(stats, 2, 6, symmetric = T, alpha=0.1) \%>\%
+v <- exampleVolumes()
+sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) \%>\%
+  anatomy(v$anatomy, low = 600, high = 1400) \%>\%
+  overlay(v$stats, low = 2, high = 6, symmetric = TRUE) \%>\%
   legend("t-statistics") \%>\%
-  anatomySliceIndicator(anatVol, 700, 1400) \%>\%
+  anatomySliceIndicator(v$anatomy, 600, 1400) \%>\%
   draw()
-}
 }

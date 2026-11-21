@@ -48,11 +48,15 @@ slices, rows, columns and dimension come from the current series. Give
 value.
 }
 \examples{
-\dontrun{
-sliceSeries(nrow = 1, begin=200, end=300) \%>\%
-  anatomy(anatVol, low=700, high=1400) \%>\%
-  overlay(stats, low=2, high=6, symmetric = T) \%>\%
-  legend("t-statistics") \%>\%
+v <- exampleVolumes()
+sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) \%>\%
+  anatomy(v$anatomy, low = 600, high = 1400) \%>\%
   draw()
-}
+
+# reuse the anatomy in a second series along another dimension
+sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) \%>\%
+  anatomy(v$anatomy, low = 600, high = 1400) \%>\%
+  sliceSeries(dimension = 1) \%>\%
+  anatomy() \%>\%
+  draw()
 }

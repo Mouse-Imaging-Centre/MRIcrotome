@@ -42,13 +42,17 @@ validateVolume <- function(volume) {
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' sliceSeries(nrow = 1, begin=200, end=300) %>%
-#'   anatomy(anatVol, low=700, high=1400) %>%
-#'   overlay(stats, low=2, high=6, symmetric = T) %>%
+#' v <- exampleVolumes()
+#' sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) %>%
+#'   anatomy(v$anatomy, low = 600, high = 1400) %>%
+#'   overlay(v$stats, low = 2, high = 6, symmetric = TRUE) %>%
 #'   legend("t-statistics") %>%
 #'   draw()
-#' }
+#'
+#' # explicit slices; ncol is calculated from their number
+#' sliceSeries(nrow = 1, slices = c(15, 25, 35)) %>%
+#'   anatomy(v$anatomy, low = 600, high = 1400) %>%
+#'   draw()
 sliceSeries <- function(ssm=NULL,
                         slices=NULL,
                         nrow=NULL,
@@ -136,11 +140,13 @@ sliceSeries <- function(ssm=NULL,
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' bounds <- maskBounds(binaryMask, dimension = 2, padding = 10)
-#' sliceSeries(nrow = 5, begin = bounds["begin"], end = bounds["end"],
-#'             dimension = 2) \%>\% ...
-#' }
+#' v <- exampleVolumes()
+#' whiteMatter <- v$labels == 1
+#' bounds <- maskBounds(whiteMatter, dimension = 2, padding = 2)
+#' bounds
+#' sliceSeries(nrow = 1, ncol = 4, begin = bounds["begin"], end = bounds["end"]) %>%
+#'   anatomy(v$anatomy, low = 600, high = 1400) %>%
+#'   draw()
 maskBounds <- function(mask, dimension, padding = 10) {
   if (!is.array(mask) || length(dim(mask)) != 3)
     stop("'mask' must be a 3D array")
@@ -262,13 +268,17 @@ makeSlices <- function(ss, volume) {
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' sliceSeries(nrow = 1, begin=200, end=300) %>%
-#'   anatomy(anatVol, low=700, high=1400) %>%
-#'   overlay(stats, low=2, high=6, symmetric = T) %>%
-#'   legend("t-statistics") %>%
+#' v <- exampleVolumes()
+#' sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) %>%
+#'   anatomy(v$anatomy, low = 600, high = 1400) %>%
 #'   draw()
-#' }
+#'
+#' # reuse the anatomy in a second series along another dimension
+#' sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) %>%
+#'   anatomy(v$anatomy, low = 600, high = 1400) %>%
+#'   sliceSeries(dimension = 1) %>%
+#'   anatomy() %>%
+#'   draw()
 anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL,
                     col=gray.colors(255, start=0), alpha=NULL, name="anatomy") {
   # with no volume, repeat the most recent earlier anatomy call, but slice it
@@ -327,13 +337,19 @@ anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL,
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' sliceSeries(nrow = 1, begin=200, end=300) %>%
-#'   anatomy(anatVol, low=700, high=1400) %>%
-#'   overlay(stats, low=2, high=6, symmetric = T) %>%
+#' v <- exampleVolumes()
+#' sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) %>%
+#'   anatomy(v$anatomy, low = 600, high = 1400) %>%
+#'   overlay(v$stats, low = 2, high = 6, symmetric = TRUE) %>%
 #'   legend("t-statistics") %>%
 #'   draw()
-#' }
+#'
+#' # labels as an overlay, with sharp edges
+#' sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) %>%
+#'   anatomy(v$anatomy, low = 600, high = 1400) %>%
+#'   overlay(v$labels, low = 1, high = 2, col = c("blue", "orange"),
+#'           alpha = 0.4, interpolate = FALSE) %>%
+#'   draw()
 overlay <- function(ssm, volume, low=NULL, high=NULL, col=defaultCol(),
                     symmetric=FALSE, rCol=defaultRCol(), alpha=NULL,
                     underTransparent = TRUE, name=NULL, box=FALSE,
@@ -362,17 +378,16 @@ overlay <- function(ssm, volume, low=NULL, high=NULL, col=defaultCol(),
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' sliceSeries(nrow = 8, begin=100, end=350) %>%
-#'   anatomy(anatVol, low=700, high=1400) %>%
+#' v <- exampleVolumes()
+#' sliceSeries(nrow = 4, begin = 10, end = 40) %>%
+#'   anatomy(v$anatomy, low = 600, high = 1400) %>%
 #'   addtitle("Anatomy") %>%
 #'   sliceSeries() %>%
 #'   anatomy() %>%
-#'   overlay(stats, low=2, high=6, symmetric = T) %>%
+#'   overlay(v$stats, low = 2, high = 6, symmetric = TRUE) %>%
 #'   addtitle("Stats") %>%
 #'   legend("t-statistics") %>%
 #'   draw()
-#' }
 addtitle <- function(ssm, title, side = "right") {
   side <- match.arg(side, c("left", "right"))
   ss <- getSS(ssm)
@@ -403,30 +418,29 @@ addtitle <- function(ssm, title, side = "right") {
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' sliceSeries(nrow = 8, begin=100, end=350) %>%
-#'   anatomy(anatVol, low=700, high=1400) %>%
+#' v <- exampleVolumes()
+#' sliceSeries(nrow = 4, begin = 10, end = 40) %>%
+#'   anatomy(v$anatomy, low = 600, high = 1400) %>%
 #'   addtitle("Anatomy") %>%
 #'   sliceSeries() %>%
 #'   anatomy() %>%
-#'   overlay(stats, low=2, high=6, symmetric = T) %>%
+#'   overlay(v$stats, low = 2, high = 6, symmetric = TRUE) %>%
 #'   addtitle("Stats") %>%
 #'   legend("t-statistics") %>%
 #'   draw()
 #'
 #' # one colour bar for three views drawn as rows
-#' sliceSeries(nrow = 1, ncol = 5, begin = 100, end = 350, dimension = 2) %>%
-#'   anatomy(anatVol, low=700, high=1400) %>%
-#'   overlay(stats, low=2, high=6, symmetric = T) %>%
+#' sliceSeries(nrow = 1, ncol = 5, begin = 10, end = 40, dimension = 2) %>%
+#'   anatomy(v$anatomy, low = 600, high = 1400) %>%
+#'   overlay(v$stats, low = 2, high = 6, symmetric = TRUE) %>%
 #'   sliceSeries(dimension = 1) %>%
-#'   anatomy(anatVol, low=700, high=1400) %>%
-#'   overlay(stats, low=2, high=6, symmetric = T) %>%
+#'   anatomy() %>%
+#'   overlay(v$stats, low = 2, high = 6, symmetric = TRUE) %>%
 #'   sliceSeries(dimension = 3) %>%
-#'   anatomy(anatVol, low=700, high=1400) %>%
-#'   overlay(stats, low=2, high=6, symmetric = T) %>%
+#'   anatomy() %>%
+#'   overlay(v$stats, low = 2, high = 6, symmetric = TRUE) %>%
 #'   legend("t-statistics", global = TRUE) %>%
 #'   draw(layout = "row")
-#' }
 legend <- function(ssm, description=NULL, global=FALSE, digits=3) {
   ss <- getSS(ssm)
   if (length(ss$order) == 0)
@@ -512,20 +526,21 @@ slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent 
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' sliceSeries(nrow = 1, begin=200, end=300) %>%
-#'   anatomy(anatVol, low=700, high=1400) %>%
-#'   overlay(stats, low=2, high=6, symmetric = T) %>%
+#' v <- exampleVolumes()
+#' sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) %>%
+#'   anatomy(v$anatomy, low = 600, high = 1400) %>%
+#'   overlay(v$stats, low = 2, high = 6, symmetric = TRUE) %>%
 #'   legend("t-statistics") %>%
-#'   contours(abs(stats), levels=c(3,5), lwd=2, lty=c(3,1), col="green") %>%
+#'   contours(abs(v$stats), levels = c(3, 5), lwd = 2, lty = c(3, 1), col = "green") %>%
+#'   legend("|t|") %>%
 #'   draw()
 #'
-#' # outline the hippocampus from an atlas of labels
-#' sliceSeries(nrow = 1, begin=200, end=300) %>%
-#'   anatomy(anatVol, low=700, high=1400) %>%
-#'   contours(atlas, labels=hippocampusLabels, col="magenta") %>%
+#' # outline the white matter from a volume of labels
+#' sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) %>%
+#'   anatomy(v$anatomy, low = 600, high = 1400) %>%
+#'   contours(v$labels, labels = 1, col = "magenta") %>%
+#'   legend("white matter") %>%
 #'   draw()
-#' }
 contours <- function(ssm, volume, levels=NULL, col="red", lty=1, lwd=1, name="contours", labels=NULL) {
   if (!is.null(labels) && !is.null(levels)) stop("Cannot specify both 'levels' and 'labels'")
   if (is.null(labels) && is.null(levels)) stop("Must specify either 'levels' or 'labels'")
@@ -582,14 +597,13 @@ contours <- function(ssm, volume, levels=NULL, col="red", lty=1, lwd=1, name="co
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' sliceSeries(nrow=5, begin=150, end=250) %>%
-#'   anatomy(anatVol, low=700, high=1400) %>%
-#'   overlay(stats, 2, 6, symmetric = T, alpha=0.1) %>%
+#' v <- exampleVolumes()
+#' sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) %>%
+#'   anatomy(v$anatomy, low = 600, high = 1400) %>%
+#'   overlay(v$stats, low = 2, high = 6, symmetric = TRUE) %>%
 #'   legend("t-statistics") %>%
-#'   anatomySliceIndicator(anatVol, 700, 1400) %>%
+#'   anatomySliceIndicator(v$anatomy, 600, 1400) %>%
 #'   draw()
-#' }
 anatomySliceIndicator <- function(ssm, volume, low, high, dimension=NULL,
                                   slice=NULL, col=gray.colors(255, start=0),
                                   lineColour="green") {
@@ -627,14 +641,13 @@ anatomySliceIndicator <- function(ssm, volume, low, high, dimension=NULL,
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' sliceSeries(nrow=5, begin=150, end=250) %>%
-#'   anatomy(anatVol, low=700, high=1400) %>%
-#'   overlay(stats, 2, 6, symmetric = T, alpha=0.1) %>%
+#' v <- exampleVolumes()
+#' sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) %>%
+#'   anatomy(v$anatomy, low = 600, high = 1400) %>%
+#'   overlay(v$stats, low = 2, high = 6, symmetric = TRUE) %>%
 #'   legend("t-statistics") %>%
-#'   contourSliceIndicator(anatVol, c(700, 1400)) %>%
+#'   contourSliceIndicator(v$anatomy, levels = 1030, col = "gray30") %>%
 #'   draw()
-#' }
 contourSliceIndicator <- function(ssm, volume, levels, dimension=NULL, slice=NULL, col="red", lty=1, lwd=1, lineColour="black") {
   validateVolume(volume)
   defDS <- sliceIndicatorDefaultDimensionAndSlice(ssm, volume)
@@ -813,14 +826,15 @@ grobifySliceSeries <- function(ss, sliceBg = "black") {
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' sliceSeriesGridTree <- sliceSeries(nrow=5, begin=150, end=250) %>%
-#'   anatomy(anatVol, low=700, high=1400) %>%
-#'   overlay(stats, 2, 6, symmetric = T, alpha=0.1) %>%
+#' v <- exampleVolumes()
+#' g <- sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) %>%
+#'   anatomy(v$anatomy, low = 600, high = 1400) %>%
+#'   overlay(v$stats, low = 2, high = 6, symmetric = TRUE) %>%
 #'   legend("t-statistics") %>%
-#'   anatomySliceIndicator(anatVol, 700, 1400) %>%
+#'   anatomySliceIndicator(v$anatomy, 600, 1400) %>%
 #'   grobify()
-#' }
+#' grid::grid.newpage()
+#' grid::grid.draw(g)
 grobify <- function(ssm, layout="column", titlePars = gpar(), legendPars = gpar(), bgCol = NULL,
                     sliceBg = "black") {
   for (i in seq_along(ssm$ssl)) {
@@ -944,13 +958,17 @@ grobifyByColumn <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol 
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' sliceSeries(nrow = 1, begin=200, end=300) %>%
-#'   anatomy(anatVol, low=700, high=1400) %>%
-#'   overlay(stats, low=2, high=6, symmetric = T) %>%
+#' v <- exampleVolumes()
+#' sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) %>%
+#'   anatomy(v$anatomy, low = 600, high = 1400) %>%
+#'   overlay(v$stats, low = 2, high = 6, symmetric = TRUE) %>%
 #'   legend("t-statistics") %>%
 #'   draw()
-#' }
+#'
+#' # a white page with no black rectangle behind the slices
+#' sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) %>%
+#'   anatomy(v$anatomy, low = 600, high = 1400) %>%
+#'   draw(sliceBg = NA)
 draw <- function(ssm, layout="column", ...) {
   grid.newpage()
   # a small margin so that labels at the figure edge are not flush with the page

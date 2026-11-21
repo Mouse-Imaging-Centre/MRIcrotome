@@ -47,12 +47,11 @@ Adds an indicator of the slices used in the slice series, displayed on top of
 one or more contours.
 }
 \examples{
-\dontrun{
-sliceSeries(nrow=5, begin=150, end=250) \%>\%
-  anatomy(anatVol, low=700, high=1400) \%>\%
-  overlay(stats, 2, 6, symmetric = T, alpha=0.1) \%>\%
+v <- exampleVolumes()
+sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) \%>\%
+  anatomy(v$anatomy, low = 600, high = 1400) \%>\%
+  overlay(v$stats, low = 2, high = 6, symmetric = TRUE) \%>\%
   legend("t-statistics") \%>\%
-  contourSliceIndicator(anatVol, c(700, 1400)) \%>\%
+  contourSliceIndicator(v$anatomy, levels = 1030, col = "gray30") \%>\%
   draw()
-}
 }
