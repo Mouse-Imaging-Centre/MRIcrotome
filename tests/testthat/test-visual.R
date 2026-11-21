@@ -73,3 +73,13 @@ test_that("rotated and mirrored series", {
       draw(layout = "row")
   })
 })
+
+test_that("voxels that are not square", {
+  expect_figure("voxel-size", function() {
+    sliceSeries(nrow = 1, ncol = 3, begin = 6, end = 18, voxelSize = c(1, 1, 2)) %>%
+      anatomy(v$anat, low = 0, high = 3000) %>%
+      contours(v$labels, labels = 2, col = "magenta") %>%
+      anatomySliceIndicator(v$anat, 0, 3000) %>%
+      draw()
+  })
+})

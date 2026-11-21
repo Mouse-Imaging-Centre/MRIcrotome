@@ -13,7 +13,8 @@ sliceSeries(
   begin = NULL,
   end = NULL,
   rotate = NULL,
-  flip = NULL
+  flip = NULL,
+  voxelSize = NULL
 )
 }
 \arguments{
@@ -58,6 +59,16 @@ later series in the pipe unless you give them again. They apply to each
 layer of the series (anatomy, overlays and contours), so the layers stay
 aligned. Slice indicators are not turned: they show a view along another
 dimension.}
+
+\item{voxelSize}{The voxel separations along the three array dimensions,
+for example \code{c(0.1, 0.1, 0.5)}. With the default (NULL, which means
+\code{c(1, 1, 1)}) each voxel is drawn as a square. Give the separations
+of a volume whose voxels are not cubes, so that its slices and slice
+indicators are drawn with their real proportions. Only the ratios
+matter, so any unit works. Like the other arguments, it carries over to
+later series. For a MINC file read with RMINC, the separations in array
+order are \code{rev(abs(RMINC::minc.separation.sizes(file)))}, because
+\code{mincArray()} reverses the file's dimension order.}
 }
 \value{
 Returns the slices series info for passing along the pipe.
