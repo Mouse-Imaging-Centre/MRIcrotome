@@ -18,9 +18,8 @@ examples and the vignette run without MINC files or RMINC.
 \code{anatomy} is real data: a cut-out of a mouse brain MRI with
 0.056 mm voxels (the region looks like the cerebellum). It is
 \code{brain_cut_out.mnc} from the RMINC test data
-(\url{https://github.com/Mouse-Imaging-Centre/RMINC-test-data}),
-copyright Mouse Imaging Centre, Hospital for Sick Children, under the
-BSD-3-Clause licence; see the file \code{COPYRIGHTS} of the installed
+(\url{https://github.com/Mouse-Imaging-Centre/RMINC-test-data}), which
+has the same copyright holder and licence (BSD-3-Clause) as this
 package. Its values go from about 190 to 2420. Dark tissue is about 600
 to 1030 and light tissue is above that.
 
