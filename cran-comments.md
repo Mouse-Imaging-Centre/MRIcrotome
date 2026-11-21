@@ -25,7 +25,10 @@ it does not depend on it: it draws plain R arrays.
 ## Notes for the reviewers
 
 * `R/sysdata.rda` (140 KB) holds a 50 x 50 x 50 voxel cut-out of a mouse
-  brain MRI from the RMINC test data (BSD-3-Clause, the same licence as this
-  package). `exampleVolumes()` returns it for the examples, tests and
-  vignette. `data-raw/` (excluded from the build) shows how it was made.
+  brain MRI from the RMINC test data, copyright (c) 2022 Mouse Imaging
+  Centre, Hospital for Sick Children, under the BSD-3-Clause licence. The
+  copyright holder is in Authors@R (cph) and the licence notice is in
+  inst/COPYRIGHTS. `exampleVolumes()` returns the data for the examples,
+  tests and vignette. `data-raw/` (excluded from the build) shows how it was
+  made.
 * The examples write only to the current graphics device or to `tempfile()`.
