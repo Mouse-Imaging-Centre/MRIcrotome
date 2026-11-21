@@ -11,7 +11,9 @@ sliceSeries(
   ncol = NULL,
   dimension = NULL,
   begin = NULL,
-  end = NULL
+  end = NULL,
+  rotate = NULL,
+  flip = NULL
 )
 }
 \arguments{
@@ -32,6 +34,22 @@ the slices go in one row (or in the rows of the previous series).}
 \item{begin}{First slice. Can be NULL if slices explicitly specified.}
 
 \item{end}{Last slice. Can be NULL if slices explicitly specified.}
+
+\item{rotate}{Rotate each slice counterclockwise by 0 (the default), 90,
+180 or 270 degrees. For 90 and 270 the slices change from wide to tall,
+and the layout of the series follows. With
+\code{options(RMINC_flip_image = FALSE)} the image is drawn upside down,
+so the same value turns it clockwise.}
+
+\item{flip}{Mirror each slice after the rotation: \code{"none"} (the
+default), \code{"horizontal"} (left and right change places) or
+\code{"vertical"} (top and bottom change places).
+
+Like the other arguments, \code{rotate} and \code{flip} carry over to
+later series in the pipe unless you give them again. They apply to each
+layer of the series (anatomy, overlays and contours), so the layers stay
+aligned. Slice indicators are not turned: they show a view along another
+dimension.}
 }
 \value{
 Returns the slices series info for passing along the pipe.
@@ -51,5 +69,12 @@ sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) \%>\%
 # explicit slices; ncol is calculated from their number
 sliceSeries(nrow = 1, slices = c(15, 25, 35)) \%>\%
   anatomy(v$anatomy, low = 600, high = 1400) \%>\%
+  draw()
+
+# the same slices turned a quarter turn, then mirrored
+sliceSeries(nrow = 1, slices = c(15, 25, 35), rotate = 90) \%>\%
+  anatomy(v$anatomy, low = 600, high = 1400) \%>\%
+  sliceSeries(flip = "horizontal") \%>\%
+  anatomy() \%>\%
   draw()
 }
