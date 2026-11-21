@@ -34,7 +34,7 @@ rectangle, so that \code{bgCol} (or the page) shows around and through
 the slices.}
 }
 \value{
-A gTree object with the figure, to be drawn with \link{grid.draw}
+A gTree object with the figure, to be drawn with \code{\link[grid:grid.draw]{grid::grid.draw()}}
 }
 \description{
 Takes the slice series, creates grobs where necessary, and returns a gTree.

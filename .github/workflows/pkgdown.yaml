@@ -5,6 +5,18 @@
 on:
   push:
     branches: [main, master]
+    # deploy only when a file that the site is made from changes (as in
+    # RMINC's pkgdown workflow)
+    paths:
+      - 'R/**'
+      - 'man/**'
+      - 'vignettes/**'
+      - 'NAMESPACE'
+      - 'DESCRIPTION'
+      - 'README.md'
+      - 'NEWS.md'
+      - '_pkgdown.yml'
+      - '.github/workflows/pkgdown.yaml'
   pull_request:
   release:
     types: [published]

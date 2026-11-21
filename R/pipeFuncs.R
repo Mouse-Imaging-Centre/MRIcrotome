@@ -865,7 +865,7 @@ checkHasLayers <- function(ssm) {
 #'   rectangle, so that \code{bgCol} (or the page) shows around and through
 #'   the slices.
 #' 
-#' @return A gTree object with the figure, to be drawn with [grid.draw]
+#' @return A gTree object with the figure, to be drawn with [grid::grid.draw()]
 #' @export
 #'
 #' @examples
