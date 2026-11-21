@@ -556,7 +556,7 @@ anatomySliceIndicator <- function(ssm, volume, low, high, dimension=NULL,
 
   indVP <- setupSliceIndicatorVP(volume, dimension)
   indSlice <- sliceImage(volume, dimension,slice, low, high, col=col, vp=indVP)
-  return(sliceIndicator(ssm, volume, dimension, indSlice, indVP))
+  return(sliceIndicator(ssm, volume, dimension, indSlice, indVP, lineColour))
 }
 
 
