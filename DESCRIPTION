@@ -11,7 +11,8 @@ Description: Builds publication-ready figures from 3D volumes such as MRI
     'grid' graphics, so they can also be returned as grobs and combined with
     other 'grid' output.
 License: BSD_3_clause + file LICENSE
-URL: https://github.com/Mouse-Imaging-Centre/MRIcrotome
+URL: https://github.com/Mouse-Imaging-Centre/MRIcrotome,
+    https://mouse-imaging-centre.github.io/MRIcrotome/
 BugReports: https://github.com/Mouse-Imaging-Centre/MRIcrotome/issues
 Encoding: UTF-8
 Depends: R (>= 2.10)

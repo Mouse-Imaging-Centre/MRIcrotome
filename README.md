@@ -18,7 +18,9 @@ devtools::install_github("Mouse-Imaging-Centre/MRIcrotome")
 ## Usage
 
 For a full tutorial with rendered figures, see the
-[vignette](https://htmlpreview.github.io/?https://github.com/Mouse-Imaging-Centre/MRIcrotome/blob/master/vignettes/figures.html).
+[vignette](https://mouse-imaging-centre.github.io/MRIcrotome/articles/figures.html)
+on the [package website](https://mouse-imaging-centre.github.io/MRIcrotome/),
+or run `vignette("figures", package = "MRIcrotome")` after installation.
 
 MRIcrotome is designed to be used with pipes. A typical workflow starts with
 `sliceSeries()`, adds layers such as `anatomy()`, `overlay()`, or
