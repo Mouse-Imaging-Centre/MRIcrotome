@@ -259,8 +259,12 @@ makeSlices <- function(ss, volume) {
          paste(unique(s[bad]), collapse = ", "),
          if (fromRange) ". Check 'begin' and 'end'." else ".")
 
-  if (length(ss$slices) != ss$ncol*ss$nrow)
-    warning("Number of slices does not equal nrow*ncol, likely resulting in weird figures")
+  # fewer slices than cells leaves the last cells empty (e.g. 5 slices in a
+  # 2 x 3 grid); more slices than cells drops the extra ones
+  if (length(ss$slices) > ss$ncol*ss$nrow)
+    warning("Only the first ", ss$ncol*ss$nrow, " of the ", length(ss$slices),
+            " slices are drawn, because nrow * ncol is ", ss$ncol*ss$nrow, ".",
+            call. = FALSE)
 
   return(ss)
 }

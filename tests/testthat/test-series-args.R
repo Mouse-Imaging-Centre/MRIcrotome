@@ -29,3 +29,16 @@ test_that("nrow or ncol is calculated from slices", {
   expect_equal(grid(two), c(2, 3))
   expect_error(sliceSeries(), "Must specify either nrow or ncol")
 })
+
+test_that("a grid with more cells than slices leaves the last cells empty", {
+  v <- testVolumes()
+  pdf(NULL); on.exit(dev.off())
+  expect_no_warning(ssm <- sliceSeries(nrow = 2, slices = c(4, 8, 12, 16, 20)) %>%
+                      anatomy(v$anat, 0, 3000) %>% overlay(v$stats, 2, 5) %>%
+                      contours(v$labels, labels = 1))
+  expect_equal(c(ssm$ssl[[1]]$nrow, ssm$ssl[[1]]$ncol), c(2, 3))
+  expect_no_warning(draw(ssm))
+  # more slices than cells: the extra ones are dropped, with a warning
+  expect_warning(sliceSeries(nrow = 1, ncol = 2, slices = c(4, 8, 12)) %>% anatomy(v$anat, 0, 3000),
+                 "Only the first 2 of the 3 slices")
+})
