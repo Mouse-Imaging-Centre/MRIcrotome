@@ -26,3 +26,17 @@ test_that("figureSize() checks its arguments", {
   expect_error(figureSize(fig, width = 7, layout = "grid"), "should be one of")
   expect_error(figureSize(sliceSeries(nrow = 1), width = 7), "has no layers")
 })
+
+test_that("figureSize() leaves the current graphics device as it was", {
+  v <- testVolumes()
+  fig <- sliceSeries(nrow = 1, ncol = 2) %>% anatomy(v$anat, 0, 3000) %>% legend("a")
+  pdf(NULL); first <- dev.cur()
+  pdf(NULL); pdf(NULL)
+  on.exit(while (dev.cur() > 1 && dev.cur() >= first) dev.off(), add = TRUE)
+  dev.set(first + 1)
+  before <- dev.cur()
+  n <- length(dev.list())
+  figureSize(fig, width = 7)
+  expect_equal(dev.cur(), before)
+  expect_length(dev.list(), n)
+})

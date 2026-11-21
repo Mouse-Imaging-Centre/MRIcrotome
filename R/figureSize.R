@@ -73,9 +73,15 @@ figureSize <- function(ssm, width = NULL, height = NULL, layout = "column",
   }
 
   # column layout: legend columns and the title row have fixed sizes
+  # measure on a temporary null device, then make the user's device current
+  # again (dev.off() alone would make the next device in the list current)
   inches <- function(u, f) {
+    old <- grDevices::dev.cur()
     grDevices::pdf(NULL)
-    on.exit(grDevices::dev.off())
+    on.exit({
+      grDevices::dev.off()
+      if (old > 1) grDevices::dev.set(old)
+    })
     f(u, "inches", valueOnly = TRUE)
   }
   legendInches <- sum(vapply(ssm$ssl, function(ss)
