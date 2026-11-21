@@ -2,7 +2,7 @@
 % Please edit documentation in R/pipeFuncs.R
 \name{grobify}
 \alias{grobify}
-\title{Turn the slice series into grobs.}
+\title{Turn the slice series into grobs}
 \usage{
 grobify(
   ssm,

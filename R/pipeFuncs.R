@@ -5,6 +5,21 @@ initMetaSliceSeries <- function() {
   return(ssm)
 }
 
+# Every function that takes a volume goes through here, so a file path or a
+# volume that was not passed through mincArray() fails with a clear message
+# instead of a cryptic grid error.
+validateVolume <- function(volume) {
+  if (is.character(volume) && length(volume) == 1)
+    stop("'volume' must be a 3D array, not a file path. ",
+         "Use mincArray(mincGetVolume(\"", volume, "\")) to load it first.")
+  if (inherits(volume, "mincSingleDim"))
+    stop("'volume' must be a 3D array. Wrap the output of mincGetVolume() in mincArray().")
+  if (!is.array(volume) || length(dim(volume)) != 3)
+    stop("'volume' must be a 3D array. Got an object of class ",
+         paste(class(volume), collapse = "/"), " with ", length(dim(volume)), " dimensions.")
+  invisible(volume)
+}
+
 
 #' Initialize a slice series
 #'
@@ -84,6 +99,37 @@ sliceSeries <- function(ssm=NULL,
   return(ssm)
 }
 
+#' Compute bounding box of a mask volume
+#'
+#' Given a binary mask, returns the begin and end slices along the
+#' specified dimension, with optional padding. Useful for setting the
+#' \code{begin} and \code{end} arguments of \code{\link{sliceSeries}}.
+#'
+#' @param mask A 3D array where non-zero values indicate the region of interest.
+#' @param dimension The dimension (1, 2, or 3) along which to compute bounds.
+#' @param padding Number of voxels to add as padding on each side. Defaults to 10.
+#'
+#' @return A named numeric vector with elements \code{begin} and \code{end}.
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' bounds <- maskBounds(binaryMask, dimension = 2, padding = 10)
+#' sliceSeries(nrow = 5, begin = bounds["begin"], end = bounds["end"],
+#'             dimension = 2) \%>\% ...
+#' }
+maskBounds <- function(mask, dimension, padding = 10) {
+  if (!is.array(mask) || length(dim(mask)) != 3)
+    stop("'mask' must be a 3D array")
+  if (!is.numeric(dimension) || length(dimension) != 1 || !(dimension %in% 1:3))
+    stop("'dimension' must be 1, 2, or 3")
+  inMask <- apply(mask != 0, dimension, any, na.rm = TRUE)
+  if (!any(inMask))
+    stop("mask contains no non-zero values")
+  r <- range(which(inMask))
+  c(begin = max(1, r[1] - padding), end = min(dim(mask)[dimension], r[2] + padding))
+}
+
 getSS <- function(ssm) {
   return(ssm$ssl[[ssm$seriesCounter]])
 }
@@ -92,6 +138,7 @@ putSS <- function(ssm, ss) {
 }
 
 makeSlices <- function(ss, volume) {
+  validateVolume(volume)
   #message("seriesVP", ss$seriesVP)
   #message("slices", ss$slices)
   if (is.null(ss$seriesVP)) {
@@ -124,8 +171,10 @@ makeSlices <- function(ss, volume) {
 #'   by the user
 #' @param volume 3D matrix representing the volume from which to obtain slices.
 #'   Can be either numbers or hexadecimal colours
-#' @param low Inclusive lower end of colour scale. Can be NULL if volume is a matrix of hexadecimals.
-#' @param high Inclusive upper end of colour scale. Can be NULL if volume is a matrix of hexadecimals.
+#' @param low Inclusive lower end of colour scale. If NULL, the 2nd percentile
+#'   of the volume is used. Ignored if volume is a matrix of hexadecimals.
+#' @param high Inclusive upper end of colour scale. If NULL, the 98th percentile
+#'   of the volume is used. Ignored if volume is a matrix of hexadecimals.
 #' @param col The colour scale. Defaults to gray.
 #' @param alpha Value between 0 and 1, 0 being full transparent and 1 fully opaque.
 #' @param name Optional name.
@@ -149,11 +198,7 @@ anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL,
     ss <- getSS(ssm)
     ss[[name]] <- ssm$ssl[[ssm$seriesCounter-1]][["anatomy"]]
     ss[["seriesVP"]] <- ssm$ssl[[ssm$seriesCounter-1]][["seriesVP"]]
-    ss[["legendInfo"]][[name]] <-
-      list(type="slice",
-           low=ssm$ssl[[ssm$seriesCounter-1]]$low,
-           high=ssm$ssl[[ssm$seriesCounter-1]]$high,
-           col=ssm$ssl[[ssm$seriesCounter-1]]$col)
+    ss[["legendInfo"]][[name]] <- ssm$ssl[[ssm$seriesCounter-1]][["legendInfo"]][["anatomy"]]
     ss[["order"]][[length(ss$order)+1]] <- name
     putSS(ssm, ss)
     return(ssm)
@@ -172,18 +217,25 @@ anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL,
 #'   by the user
 #' @param volume 3D matrix representing the volume from which to obtain slices.
 #'   Can be either numbers or hexadecimal colours
-#' @param low Inclusive lower end of colour scale. Can be NULL if volume is a matrix of
-#'   hexadecimals. If symmetric=TRUE, then treat this as an absolute value (i.e.
-#'   2 would be >2 and < -2)
-#' @param high Inclusive upper end of colour scale.
-#' @param col The colour scale. See defaultCol for default.
+#' @param low Inclusive lower end of colour scale. If symmetric=TRUE, then treat
+#'   this as an absolute value (i.e. 2 would be >2 and < -2). If NULL, the 2nd
+#'   percentile of the volume (of its absolute values if symmetric=TRUE) is
+#'   used. Ignored if volume is a matrix of hexadecimals.
+#' @param high Inclusive upper end of colour scale. If NULL, the 98th percentile
+#'   of the volume (of its absolute values if symmetric=TRUE) is used.
+#' @param col The colour scale. Defaults to \code{\link{defaultCol}()}, a
+#'   red-yellow ramp that can be changed with \code{options(MRIcrotomeCol = ...)}.
 #' @param symmetric Whether the colour scale is symmetric.
-#' @param rCol The reverse colour scale. Used if symmetric=TRUE. See defaultRCol
-#'   for default.
+#' @param rCol The reverse colour scale. Used if symmetric=TRUE. Defaults to
+#'   \code{\link{defaultRCol}()}, a blue-turquoise ramp that can be changed
+#'   with \code{options(MRIcrotomeRcol = ...)}.
 #' @param alpha Value between 0 and 1, 0 being full transparent and 1 fully opaque.
 #' @param underTransparent Whether to make the under colour transparent. Defaults to TRUE.
 #' @param name Optional name.
 #' @param box Whether to draw a box around the overlay. Defaults to FALSE.
+#' @param interpolate Logical; whether to apply linear interpolation to the
+#'   overlay image when drawing. Set to \code{FALSE} for sharp boundaries
+#'   (e.g., label overlays with discrete colours). Defaults to TRUE.
 #'
 #' @return The slices series for continuation down the pipe.
 #' @export
@@ -198,11 +250,15 @@ anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL,
 #' }
 overlay <- function(ssm, volume, low=NULL, high=NULL, col=defaultCol(),
                     symmetric=FALSE, rCol=defaultRCol(), alpha=NULL,
-                    underTransparent = TRUE, name=NULL, box=FALSE) {
+                    underTransparent = TRUE, name=NULL, box=FALSE,
+                    interpolate = TRUE) {
 
-  if (is.null(name)) name <- paste0("overlay#", ssm$seriesCounter)
+  if (is.null(name)) {
+    ss <- getSS(ssm)
+    name <- paste0("overlay#", ssm$seriesCounter, "_", length(ss$order) + 1)
+  }
   slice(ssm, volume, low, high, col=col, name=name, underTransparent = underTransparent, symmetric = symmetric,
-        rCol=rCol, alpha=alpha, box=box)
+        rCol=rCol, alpha=alpha, box=box, interpolate = interpolate)
 }
 
 
@@ -266,17 +322,22 @@ addtitle <- function(ssm, title, side = "right") {
 #' }
 legend <- function(ssm, description=NULL) {
   ss <- getSS(ssm)
-  ss$legendOrder <- c(ss$legendOrder, ss$order[[length(ss$order)]])
-  ss[["legendInfo"]][[length(ss$order)]]$description = description
+  last <- ss$order[[length(ss$order)]]
+  ss$legendOrder <- c(ss$legendOrder, last)
+  ss[["legendInfo"]][[last]]$description = description
   putSS(ssm, ss)
   return(ssm)
 }
 
 slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent = FALSE, symmetric=FALSE,
-                  rCol=defaultRCol(), alpha=NULL,name=NULL, box=FALSE) {
+                  rCol=defaultRCol(), alpha=NULL,name=NULL, box=FALSE, interpolate = TRUE) {
   ss <- getSS(ssm)
   ss <- makeSlices(ss, volume)
-  #message(paste(ss$slices, collapse = " "))
+  # resolve the colour range once per volume so every slice and the legend agree
+  if (!is.character(volume)) {
+    r <- getRange(if (symmetric) abs(volume) else volume, low, high)
+    low <- r[1]; high <- r[2]
+  }
   sliceList <- list()
   counter <- 1
   sliceDims <- dim(volume)[-ss$dimension]
@@ -287,6 +348,7 @@ slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent 
                                          underTransparent = underTransparent,
                                          symmetric = symmetric,
                                          rCol = rCol, alpha=alpha, box=box,
+                                         interpolate = interpolate,
                                          vp=viewport(layout.pos.row = i,
                                                      layout.pos.col = j,
                                                      xscale=c(0, sliceDims[1]),
@@ -310,7 +372,8 @@ slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent 
 #' @param ssm The slice series info, usually passed along the pipe and specified
 #'   by the user
 #' @param volume 3D matrix representing the volume from which to obtain contours
-#' @param levels A vector of levels at which to draw the contours.
+#' @param levels A vector of levels at which to draw the contours. Give either
+#'   \code{levels} or \code{labels}, not both.
 #' @param col The colour for the contours. Can be a single value, in which case
 #'   all levels will use the same colour, or a vector if different colours for
 #'   different levels are desired. Default is red.
@@ -321,6 +384,10 @@ slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent 
 #'   all levels will use the same line width, or a vector if different line widths for
 #'   different levels are desired. Default is 1.
 #' @param name An optional name.
+#' @param labels An optional vector of label values to contour, for atlas or
+#'   segmentation volumes. Voxels whose value is in \code{labels} are turned
+#'   into a binary mask and the contour is drawn at its boundary. Give either
+#'   \code{levels} or \code{labels}, not both.
 #'
 #' @return The slices series for continuation down the pipe.
 #' @export
@@ -333,10 +400,22 @@ slice <- function(ssm, volume, low, high, col,reverse = FALSE, underTransparent 
 #'   legend("t-statistics") %>%
 #'   contours(abs(stats), levels=c(3,5), lwd=2, lty=c(3,1), col="green") %>%
 #'   draw()
+#'
+#' # outline the hippocampus from an atlas of labels
+#' sliceSeries(nrow = 1, begin=200, end=300) %>%
+#'   anatomy(anatVol, low=700, high=1400) %>%
+#'   contours(atlas, labels=hippocampusLabels, col="magenta") %>%
+#'   draw()
 #' }
-contours <- function(ssm, volume, levels, col="red", lty=1, lwd=1, name="contours") {
+contours <- function(ssm, volume, levels=NULL, col="red", lty=1, lwd=1, name="contours", labels=NULL) {
+  if (!is.null(labels) && !is.null(levels)) stop("Cannot specify both 'levels' and 'labels'")
+  if (is.null(labels) && is.null(levels)) stop("Must specify either 'levels' or 'labels'")
   ss <- getSS(ssm)
-  ss <- makeSlices(ss, volume)
+  ss <- makeSlices(ss, volume)   # checks the volume before it is used below
+  if (!is.null(labels)) {
+    volume <- array(as.integer(volume %in% labels), dim = dim(volume))
+    levels <- 0.5
+  }
   sliceList <- list()
   counter <- 1
   sliceDims <- dim(volume)[-ss$dimension]
@@ -393,6 +472,7 @@ contours <- function(ssm, volume, levels, col="red", lty=1, lwd=1, name="contour
 anatomySliceIndicator <- function(ssm, volume, low, high, dimension=NULL,
                                   slice=NULL, col=gray.colors(255, start=0),
                                   lineColour="green") {
+  validateVolume(volume)
   defDS <- sliceIndicatorDefaultDimensionAndSlice(ssm, volume)
   if (is.null(dimension)) dimension <- defDS[[1]]
   if (is.null(slice)) slice <- defDS[[2]]
@@ -435,6 +515,7 @@ anatomySliceIndicator <- function(ssm, volume, low, high, dimension=NULL,
 #'   draw()
 #' }
 contourSliceIndicator <- function(ssm, volume, levels, dimension=NULL, slice=NULL, col="red", lty=1, lwd=1, lineColour="black") {
+  validateVolume(volume)
   defDS <- sliceIndicatorDefaultDimensionAndSlice(ssm, volume)
   if (is.null(dimension)) dimension <- defDS[[1]]
   if (is.null(slice)) slice <- defDS[[2]]
@@ -443,7 +524,7 @@ contourSliceIndicator <- function(ssm, volume, levels, dimension=NULL, slice=NUL
   indVP <- setupSliceIndicatorVP(volume, dimension)
   indContour <- sliceContours(volume, dimension,levels = levels, col=col, lty=lty, lwd=lwd,
                               slice=slice, vp=indVP)
-  return(sliceIndicator(ssm, volume, dimension, indContour, indVP, "black"))
+  return(sliceIndicator(ssm, volume, dimension, indContour, indVP, lineColour))
 }
 
 setupSliceIndicatorVP <- function(volume, dimension) {
@@ -506,8 +587,8 @@ sliceIndicator <- function(ssm, volume, dimension, bgGrob, indVP, lineColour="gr
 
 assembleLegends <- function(ss, gp = gpar()) {
 
-  # some weirdness for the layout; I want alternating legends and small spacers, so that's
-  # what these next few lines do.
+  if (length(ss$legendOrder) == 0) return(NULL)
+
   nrows <- (length(ss$legendOrder)*2)-1
   widthSize <- c(rbind(rep(1, length(ss$legendOrder)),
                        rep(0.2, length(ss$legendOrder))))
@@ -536,35 +617,21 @@ assembleLegends <- function(ss, gp = gpar()) {
                               children=gl)
   }
 
-  ll <- gTree(vp=legendViewport, children=do.call(gList, legendGrobs))
+  gTree(vp=legendViewport, children=do.call(gList, legendGrobs))
+}
 
-  # the legend widths depend on the number of digits in high and low. This causes misalignment. So set all to be the
-  # max of the widths of the inner legend viewport
-  # this should be doable through just parameters somewhere to a grob or viewport, but I could not quite make that work,
-  # hence this workaround on overwriting widths
-  #mwidth <- max(sapply(ll$children, function(x) x$children[[1]]$childrenvp$parent$layout$widths[2]))
-  #for (i in 1:length(ll$children)) {
-  #  ll$children[[i]]$children[[1]]$childrenvp$parent$layout$widths[2] <- unit(mwidth, "lines")
-  #}
+hasSidePanel <- function(ss) length(ss$legendOrder) > 0 || !is.null(ss$sliceIndicator)
 
-
-  if (is.null(ss$sliceIndicator)) {
-    return(ll)
-  } else {
-    vpWithIndicator <- viewport(layout=grid.layout(nrow=2, ncol=1,
-                                                   heights=unit(c(0.15,0.85), c("null", "null"))))
-    ind <- gTree(vp=viewport(layout.pos.row = 1, layout.pos.col = 1),
-                 children=gList(ss$sliceIndicator))
-    rest <- gTree(vp=viewport(layout.pos.row = 2, layout.pos.col = 1),
-                  children=gList(ll))
-    return(
-      gTree(vp=vpWithIndicator, children=gList(ind, rest))
-    )
-    #return(
-    #  gTree(vp=viewport(layout = grid.layout()), children=gList(rest))
-    #)
-
-  }
+# The side panel next to a slice series: the slice indicator in the top 15% and
+# the legends underneath. Either part can be absent.
+assembleSidePanel <- function(ss, gp = gpar()) {
+  legends <- assembleLegends(ss, gp)
+  if (is.null(ss$sliceIndicator)) return(legends)
+  children <- list(gTree(vp=viewport(layout.pos.row = 1), children=gList(ss$sliceIndicator)))
+  if (!is.null(legends))
+    children <- c(children, list(gTree(vp=viewport(layout.pos.row = 2), children=gList(legends))))
+  gTree(vp=viewport(layout=grid.layout(nrow=2, ncol=1, heights=unit(c(0.15, 0.85), "null"))),
+        children=do.call(gList, children))
 }
 
 grobifySliceSeries <- function(ss) {
@@ -595,7 +662,7 @@ grobifySliceSeries <- function(ss) {
   #}
 }
 
-#' Turn the slice series into grobs.
+#' Turn the slice series into grobs
 #'
 #' Takes the slice series, creates grobs where necessary, and returns a gTree.
 #' Can then be incorporated into other grid functions.
@@ -631,7 +698,7 @@ grobifyByRow <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol = N
   sides <- sapply(ssm$ssl, function(x) if (length(x$title) > 0) x$titleSide %||% "right" else NA_character_)
   haveLeft <- any(sides == "left", na.rm = TRUE)
   haveRight <- any(sides == "right", na.rm = TRUE)
-  haveLegends <- any(sapply(ssm$ssl, function(x) length(x$legendOrder) > 0))
+  haveLegends <- any(sapply(ssm$ssl, hasSidePanel))
 
   # columns, each present only when some series needs it: [left title] slices [right title] [legend]
   sliceCol <- 1 + haveLeft
@@ -653,9 +720,9 @@ grobifyByRow <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol = N
                                               layout.pos.col = if (sides[i] == "left") 1 else rightCol),
                                   children=gList(textGrob(ss$title, rot=90, gp = titlePars)))
     }
-    if (length(ss$legendOrder) > 0) {
+    if (hasSidePanel(ss)) {
       gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.row = i, layout.pos.col = legendCol),
-                                  children=gList(assembleLegends(ss, gp = legendPars)))
+                                  children=gList(assembleSidePanel(ss, gp = legendPars)))
     }
   }
 
@@ -696,11 +763,11 @@ grobifyByColumn <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol 
                      children=gList(grobifySliceSeries(ssm$ssl[[i]])))
     widths[[j]] <- unit(1, "null")
     j <- j+1
-    # add the legend(s) if present
-    if (length(ssm$ssl[[i]]$legendOrder) > 0) {
+    # add the legend(s) and/or indicator if present
+    if (hasSidePanel(ssm$ssl[[i]])) {
       gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.col = j, layout.pos.row = row),
-                       children=gList(assembleLegends(ssm$ssl[[i]], gp = legendPars)))
-      widths[[j]] <- unit(4, "lines")
+                       children=gList(assembleSidePanel(ssm$ssl[[i]], gp = legendPars)))
+      widths[[j]] <- legendWidth(ssm$ssl[[i]], legendPars)
       j <- j+1
     }
   }
@@ -739,6 +806,8 @@ grobifyByColumn <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol 
 #' }
 draw <- function(ssm, layout="column") {
   grid.newpage()
-  l <- grobify(ssm, layout=layout)
-  grid.draw(l)
+  # a small margin so that labels at the figure edge are not flush with the page
+  grid.draw(gTree(children=gList(grobify(ssm, layout=layout)),
+                  vp=viewport(width = 0.95, height = 0.95)))
+  invisible(NULL)
 }

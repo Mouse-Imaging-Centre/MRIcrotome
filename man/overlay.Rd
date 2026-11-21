@@ -15,7 +15,8 @@ overlay(
   alpha = NULL,
   underTransparent = TRUE,
   name = NULL,
-  box = FALSE
+  box = FALSE,
+  interpolate = TRUE
 )
 }
 \arguments{
@@ -25,18 +26,22 @@ by the user}
 \item{volume}{3D matrix representing the volume from which to obtain slices.
 Can be either numbers or hexadecimal colours}
 
-\item{low}{Inclusive lower end of colour scale. Can be NULL if volume is a matrix of
-hexadecimals. If symmetric=TRUE, then treat this as an absolute value (i.e.
-2 would be >2 and < -2)}
+\item{low}{Inclusive lower end of colour scale. If symmetric=TRUE, then treat
+this as an absolute value (i.e. 2 would be >2 and < -2). If NULL, the 2nd
+percentile of the volume (of its absolute values if symmetric=TRUE) is
+used. Ignored if volume is a matrix of hexadecimals.}
 
-\item{high}{Inclusive upper end of colour scale.}
+\item{high}{Inclusive upper end of colour scale. If NULL, the 98th percentile
+of the volume (of its absolute values if symmetric=TRUE) is used.}
 
-\item{col}{The colour scale. See defaultCol for default.}
+\item{col}{The colour scale. Defaults to \code{\link{defaultCol}()}, a
+red-yellow ramp that can be changed with \code{options(MRIcrotomeCol = ...)}.}
 
 \item{symmetric}{Whether the colour scale is symmetric.}
 
-\item{rCol}{The reverse colour scale. Used if symmetric=TRUE. See defaultRCol
-for default.}
+\item{rCol}{The reverse colour scale. Used if symmetric=TRUE. Defaults to
+\code{\link{defaultRCol}()}, a blue-turquoise ramp that can be changed
+with \code{options(MRIcrotomeRcol = ...)}.}
 
 \item{alpha}{Value between 0 and 1, 0 being full transparent and 1 fully opaque.}
 
@@ -45,6 +50,10 @@ for default.}
 \item{name}{Optional name.}
 
 \item{box}{Whether to draw a box around the overlay. Defaults to FALSE.}
+
+\item{interpolate}{Logical; whether to apply linear interpolation to the
+overlay image when drawing. Set to \code{FALSE} for sharp boundaries
+(e.g., label overlays with discrete colours). Defaults to TRUE.}
 }
 \value{
 The slices series for continuation down the pipe.

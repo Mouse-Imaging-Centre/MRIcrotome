@@ -83,6 +83,33 @@ sliceSeries(nrow = 5, begin = 150, end = 250) %>%
   draw()
 ```
 
+### Slice order and orientation
+
+Slices are taken along `dimension` from `begin` to `end`, so swap the two
+(or pass `slices` explicitly) to show the series in the opposite order:
+
+```r
+sliceSeries(nrow = 1, ncol = 5, begin = 300, end = 200) %>%
+  anatomy(anatVol, low = 700, high = 1400) %>%
+  draw()
+```
+
+In each slice the first remaining axis of the array runs left to right, and
+the second runs up the page, so a coronal slice (`dimension = 2`) shows axis 1
+across and axis 3 up. By default the up axis is reversed before drawing, as
+RMINC does, so the highest index is at the top and the axis reads bottom to
+top. Set `options(RMINC_flip_image = FALSE)` to keep the array order, which
+puts index 1 at the top and makes the axis read top to bottom.
+
+To flip or rotate the slices themselves, reorder or permute the array before
+you pass it in, and use the same transformed array for every layer of the
+series:
+
+```r
+flipped <- anatVol[dim(anatVol)[1]:1, , ]   # mirror left-right
+rotated <- aperm(anatVol, c(3, 2, 1))       # swap the across and up axes
+```
+
 ### Using grobify for grid integration
 
 Use `grobify()` instead of `draw()` to obtain a `gTree` object that can
@@ -98,6 +125,31 @@ g <- sliceSeries(nrow = 5, begin = 150, end = 250) %>%
 grid.newpage()
 grid.draw(g)
 ```
+
+### Figure size and padding
+
+Each slice series keeps the aspect ratio of its slices: the grid of slices is
+`ncol * w` wide by `nrow * h` high, where `w` and `h` are the slice
+dimensions in voxels (`dim(volume)[-dimension]`; voxel size is not taken
+into account). When the device has a different shape, the slices are centred
+in their cell and the rest of the cell is filled with the black background.
+To avoid that padding, size the device to the figure:
+
+```r
+d <- dim(anatVol)[-2]                     # slice dimensions for dimension = 2
+nrow <- 5; ncol <- 5
+png("figure.png", width = ncol * d[1], height = nrow * d[2])   # or any multiple
+sliceSeries(nrow = nrow, ncol = ncol, begin = 100, end = 350) %>%
+  anatomy(anatVol, low = 700, high = 1400) %>%
+  draw()
+dev.off()
+```
+
+Legends add a few lines of width in column layout and 20% in row layout;
+titles add one line of height in column layout and 10% of width in row
+layout. In row layout every slice series gets one row of equal height, so
+give the series the same `ncol` and similar slice dimensions when they should
+line up.
 
 ## Key functions
 

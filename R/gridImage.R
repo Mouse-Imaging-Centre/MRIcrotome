@@ -11,6 +11,7 @@ sliceImage <- function(volume,
                        rCol = defaultRCol(),
                        alpha=NULL,
                        box=FALSE,
+                       interpolate = TRUE,
                        vp=NULL) {
 
   if (length(dim(volume)) != 3)
@@ -23,7 +24,7 @@ sliceImage <- function(volume,
     m <- 1
   }
 
-  imRange <- getRangeFromHistogram(volume, low, high)
+  imRange <- getRange(volume, low, high)
   s$slice <- scaleSlice(s$slice, imRange[1] * m, imRange[2] *
                           m, underTransparent = underTransparent)
   sliceDims <- dim(s$slice)
@@ -43,8 +44,8 @@ sliceImage <- function(volume,
   #if (!all(is.na(s$slice))) {
   if (is.numeric(s$slice)) {
     colourDepth <- length(col)
-    paletteScaledSlice <- scaleSliceToPalette(s$slice, low,
-                                              high, col)
+    paletteScaledSlice <- scaleSliceToPalette(s$slice, imRange[1],
+                                              imRange[2], col)
     colourizedSlice <- col[paletteScaledSlice]
     dim(colourizedSlice) <- sliceDims
   }
@@ -58,7 +59,7 @@ sliceImage <- function(volume,
     #rasterImage(colourizedSlice, xleft = 0, xright = sliceDims[1],
     #            ytop = 0, ybottom = sliceDims[2])
     g <- rasterGrob(colourizedSlice, vp=vp, width = unit(sliceDims[1], "native"),
-                    height = unit(sliceDims[2], "native")) #
+                    height = unit(sliceDims[2], "native"), interpolate = interpolate) #
     #grid.raster(colourizedSlice)
   #
   #return(invisible(NULL))
@@ -69,7 +70,7 @@ sliceImage <- function(volume,
                                  high=high,
                                  reverse=TRUE,
                                  underTransparent=TRUE,
-                                 col=rCol, vp=vp)))
+                                 col=rCol, vp=vp, interpolate = interpolate)))
     } else {
   #return(gList(g, rectGrob(gp=gpar(col="black", fill="#FFFFFF00"), vp=vp)))
       return(gList(g))
@@ -103,21 +104,52 @@ sliceContours <- function(volume,
 
 
 
+#' Default colour palette for overlays
+#'
+#' Returns the default colour palette used by \code{\link{overlay}}: a
+#' red-to-yellow ramp with 255 colours. Set the \code{MRIcrotomeCol} option
+#' to change it, e.g. \code{options(MRIcrotomeCol = heat.colors(255))}.
+#'
+#' @return A character vector of colours.
+#' @export
+#' @examples
+#' defaultCol()
+#' options(MRIcrotomeCol = colorRampPalette(c("white", "red"))(255))
+#' defaultCol()[1]
+#' options(MRIcrotomeCol = NULL)
 defaultCol <- function() {
   getOption("MRIcrotomeCol", colorRampPalette(c("red", "yellow"))(255))
 }
 
+#' Default reverse colour palette for overlays
+#'
+#' Returns the default colour palette used for negative values when
+#' \code{symmetric=TRUE} in \code{\link{overlay}}: a blue-to-turquoise ramp
+#' with 255 colours. Set the \code{MRIcrotomeRcol} option to change it, e.g.
+#' \code{options(MRIcrotomeRcol = cm.colors(255))}.
+#'
+#' @return A character vector of colours.
+#' @export
+#' @examples
+#' defaultRCol()
 defaultRCol <- function() {
   getOption("MRIcrotomeRcol", colorRampPalette(c("blue", "turquoise1"))(255))
 }
 
-getRangeFromHistogram <- function (volume, low = NULL, high = NULL) {
+# Colour range for a volume; whichever of low/high is NULL gets the robust
+# 2nd/98th percentile (the same "robust range" FSL uses), so a few extreme
+# voxels do not dictate the scale.
+getRange <- function (volume, low = NULL, high = NULL) {
   if (is.character(volume)) return(c(NA, NA))
-  if(is.null(low) || is.null(high)) hist_midpoints <- hist(volume, plot=F)$mids
-  if (is.null(low)) { low <- hist_midpoints[5]}
-  if (is.null(high)) { high <- rev(hist_midpoints)[5]}
-
-  return(c(low, high))
+  if (is.null(low) || is.null(high)) {
+    q <- quantile(volume, c(0.02, 0.98), na.rm = TRUE, names = FALSE)
+    # sparse volumes (e.g. a few labels on a zero background) collapse the
+    # robust range to a single value; use the full range instead
+    if (q[1] == q[2]) q <- range(volume, na.rm = TRUE)
+    if (is.null(low)) low <- q[1]
+    if (is.null(high)) high <- q[2]
+  }
+  c(low, high)
 }
 
 scaleSlice <- function(slice, low=NULL, high=NULL, underTransparent=TRUE) {
