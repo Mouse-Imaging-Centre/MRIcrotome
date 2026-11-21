@@ -158,11 +158,14 @@ makeSlices <- function(ss, volume) {
     ss$seriesVP <- viewport(layout = gl)
   }
   if (is.null(ss$slices)) {
+    # the defaults are not stored in ss$begin/ss$end, so that a later series
+    # inherits only what the user gave (a later series can have another
+    # dimension, with another number of slices)
     d <- dim(volume)
-    if (is.null(ss$begin)) ss$begin <- 1
-    if (is.null(ss$end)) ss$end <- d[ss$dimension]
+    begin <- if (is.null(ss$begin)) 1 else ss$begin
+    end <- if (is.null(ss$end)) d[ss$dimension] else ss$end
     nslices <- ss$nrow*ss$ncol
-    ss$slices <- ceiling(seq(ss$begin, ss$end, length=nslices))
+    ss$slices <- ceiling(seq(begin, end, length=nslices))
   }
 
   if (length(ss$slices) != ss$ncol*ss$nrow)
@@ -188,6 +191,13 @@ makeSlices <- function(ss, volume) {
 #' @param alpha Value between 0 and 1, 0 being full transparent and 1 fully opaque.
 #' @param name Optional name.
 #'
+#' @details If \code{volume} is NULL, the most recent earlier \code{anatomy()}
+#'   call with a volume is repeated for the current slice series, with that
+#'   call's volume, \code{low}, \code{high}, \code{col} and \code{alpha}. The
+#'   slices, rows, columns and dimension come from the current series. Give
+#'   \code{low}, \code{high}, \code{col} or \code{alpha} to change only that
+#'   value.
+#'
 #' @return The slices series for continuation down the pipe.
 #' @export
 #'
@@ -201,19 +211,25 @@ makeSlices <- function(ss, volume) {
 #' }
 anatomy <- function(ssm, volume=NULL, low=NULL, high=NULL,
                     col=gray.colors(255, start=0), alpha=NULL, name="anatomy") {
-  # if there is no volume specified, then reuse the previous sliceSeries' anatomy
+  # with no volume, repeat the most recent earlier anatomy call, but slice it
+  # for the current series (its slices, rows, columns and dimension)
   if (is.null(volume)) {
-    if (ssm$seriesCounter == 1) stop("A volume must be specified the first time anatomy is used")
-    ss <- getSS(ssm)
-    ss[[name]] <- ssm$ssl[[ssm$seriesCounter-1]][["anatomy"]]
-    ss[["seriesVP"]] <- ssm$ssl[[ssm$seriesCounter-1]][["seriesVP"]]
-    ss[["legendInfo"]][[name]] <- ssm$ssl[[ssm$seriesCounter-1]][["legendInfo"]][["anatomy"]]
-    ss[["order"]][[length(ss$order)+1]] <- name
-    ssm <- putSS(ssm, ss)
-    return(ssm)
-  } else {
-    slice(ssm, volume, low, high, col=col, alpha=alpha, name=name)
+    spec <- NULL
+    for (i in rev(seq_len(ssm$seriesCounter - 1))) {
+      spec <- ssm$ssl[[i]]$anatomySpec
+      if (!is.null(spec)) break
+    }
+    if (is.null(spec)) stop("A volume must be specified the first time anatomy is used")
+    volume <- spec$volume
+    if (missing(low)) low <- spec$low
+    if (missing(high)) high <- spec$high
+    if (missing(col)) col <- spec$col
+    if (missing(alpha)) alpha <- spec$alpha
   }
+  ssm <- slice(ssm, volume, low, high, col=col, alpha=alpha, name=name)
+  ss <- getSS(ssm)
+  ss$anatomySpec <- list(volume=volume, low=low, high=high, col=col, alpha=alpha)
+  putSS(ssm, ss)
 }
 
 
