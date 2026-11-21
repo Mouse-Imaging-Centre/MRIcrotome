@@ -191,6 +191,15 @@ dev.off()
 `library(MRIcrotome)` masks `graphics::legend()`. To add a legend to a base
 graphics plot in the same session, call `graphics::legend()`.
 
+## Requirements
+
+CI checks MRIcrotome on R 4.1 and later, on Linux, macOS and Windows. R 4.1
+is the oldest version that the current releases of purrr (an import) and
+testthat (for the tests) support. The package code itself uses nothing newer
+than R 2.10, which `DESCRIPTION` gives as the minimum because the example
+data is compressed with xz. On an older R, an older purrr from the CRAN
+archive can work, but it is not checked.
+
 ## License
 
 BSD 3-Clause. See the `DESCRIPTION` file for details.
