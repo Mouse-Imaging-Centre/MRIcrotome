@@ -1,9 +1,10 @@
 """Make R/sysdata.rda's `cerebellum` from the RMINC test data.
 
 Source: rminctestdata/brain_cut_out.mnc in
-https://github.com/Mouse-Imaging-Centre/RMINC-test-data (BSD-3-Clause),
-a 50 x 50 x 50 voxel (0.056 mm) cut-out of an ex-vivo mouse brain MRI
-around the cerebellum.
+https://github.com/Mouse-Imaging-Centre/RMINC-test-data, copyright (c) 2022
+Mouse Imaging Centre, Hospital for Sick Children, BSD-3-Clause (the notice is
+in inst/COPYRIGHTS). It is a 50 x 50 x 50 voxel (0.056 mm) cut-out of a mouse
+brain MRI; the region looks like the cerebellum.
 
 MINC2 files are HDF5, so h5py reads them without the MINC toolkit:
 
