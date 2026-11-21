@@ -47,7 +47,9 @@ validateVolume <- function(volume) {
 #'   order (RMINC stops instead).
 #' @param rotate Rotate each slice counterclockwise by 0 (the default), 90,
 #'   180 or 270 degrees. For 90 and 270 the slices change from wide to tall,
-#'   and the layout of the series follows.
+#'   and the layout of the series follows. With
+#'   \code{options(RMINC_flip_image = FALSE)} the image is drawn upside down,
+#'   so the same value turns it clockwise.
 #' @param flip Mirror each slice after the rotation: \code{"none"} (the
 #'   default), \code{"horizontal"} (left and right change places) or
 #'   \code{"vertical"} (top and bottom change places).
@@ -133,7 +135,6 @@ sliceSeries <- function(ssm=NULL,
     ssm <- cloneSSM(ssm)
     ssm$seriesCounter = ssm$seriesCounter+1
   }
-  # add checking for slices vs nrow and ncol
 
   if (is.null(nrow)) nrow <- ssm$ssl[[ssm$seriesCounter-1]]$nrow
   if (is.null(ncol)) ncol <- ssm$ssl[[ssm$seriesCounter-1]]$ncol
@@ -149,7 +150,7 @@ sliceSeries <- function(ssm=NULL,
             end=if (is.null(end) && ssm$seriesCounter>1) ssm$ssl[[ssm$seriesCounter-1]]$end else end,
             rotate=if (is.null(rotate)) prev$rotate %||% 0 else rotate,
             flip=if (is.null(flip)) prev$flip %||% "none" else flip,
-            seriesVP=NULL, #seriesVP,
+            seriesVP=NULL,
             order=list(),
             legendInfo=list(),
             legendOrder=list(),
@@ -463,8 +464,10 @@ addtitle <- function(ssm, title, side = "right") {
 #'   of a slice series share one side panel, so if any \code{legend()} call of
 #'   the series has \code{global = TRUE}, the whole panel is global.
 #' @param digits The smallest number of significant digits in the numbers of a
-#'   colour bar. The numbers are rounded to this, but the whole-number part is
-#'   never rounded (so 1400 stays 1400). Defaults to 3.
+#'   colour bar, from 1 to 22. Defaults to 3. The numbers are formatted
+#'   together with \code{format()}, so the whole-number part of a number
+#'   such as 1400 is kept; but when the numbers differ very much in size (for
+#'   example 0.0012 and 1234), R can use scientific notation.
 #'
 #' @return The slices series for continuation down the pipe.
 #' @export
@@ -494,6 +497,9 @@ addtitle <- function(ssm, title, side = "right") {
 #'   legend("t-statistics", global = TRUE) %>%
 #'   draw(layout = "row")
 legend <- function(ssm, description=NULL, global=FALSE, digits=3) {
+  if (!is.numeric(digits) || length(digits) != 1 || is.na(digits) ||
+      digits != round(digits) || digits < 1 || digits > 22)
+    stop("'digits' must be one whole number from 1 to 22")
   ss <- getSS(ssm)
   if (length(ss$order) == 0)
     stop("legend() must come after a layer (anatomy(), overlay() or contours()) ",
@@ -873,13 +879,19 @@ grobifySliceSeries <- function(ss, sliceBg = "black") {
 #'   grobify()
 #' grid::grid.newpage()
 #' grid::grid.draw(g)
-grobify <- function(ssm, layout="column", titlePars = gpar(), legendPars = gpar(), bgCol = NULL,
-                    sliceBg = "black") {
+# every slice series must have a layer before it can be drawn or measured; a
+# slice indicator alone is not enough
+checkHasLayers <- function(ssm) {
   for (i in seq_along(ssm$ssl)) {
     if (length(ssm$ssl[[i]]$order) == 0)
       stop("Slice series ", i, " has no layers. Add anatomy(), overlay() or ",
            "contours() after sliceSeries().")
   }
+}
+
+grobify <- function(ssm, layout="column", titlePars = gpar(), legendPars = gpar(), bgCol = NULL,
+                    sliceBg = "black") {
+  checkHasLayers(ssm)
   layout <- match.arg(layout, c("column", "row"))
   if (layout=="column") grobifyByColumn(ssm, titlePars, legendPars, bgCol, sliceBg)
   else grobifyByRow(ssm, titlePars, legendPars, bgCol, sliceBg)
