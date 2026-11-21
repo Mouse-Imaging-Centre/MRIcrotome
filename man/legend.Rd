@@ -4,7 +4,7 @@
 \alias{legend}
 \title{Add a legend}
 \usage{
-legend(ssm, description = NULL)
+legend(ssm, description = NULL, global = FALSE)
 }
 \arguments{
 \item{ssm}{The slice series info, usually passed along the pipe and specified
@@ -12,6 +12,11 @@ by the user}
 
 \item{description}{The text that will be used to describe the legend. Can be
 NULL, in which case the colour bar is shown without a description.}
+
+\item{global}{If TRUE, and the figure is drawn with \code{layout = "row"},
+the legend spans all rows as one shared legend for the whole figure
+instead of sitting beside its own slice series. In column layout a legend
+already spans the full height, so this has no effect there.}
 }
 \value{
 The slices series for continuation down the pipe.
@@ -31,5 +36,18 @@ sliceSeries(nrow = 8, begin=100, end=350) \%>\%
   addtitle("Stats") \%>\%
   legend("t-statistics") \%>\%
   draw()
+
+# one colour bar for three views drawn as rows
+sliceSeries(nrow = 1, ncol = 5, begin = 100, end = 350, dimension = 2) \%>\%
+  anatomy(anatVol, low=700, high=1400) \%>\%
+  overlay(stats, low=2, high=6, symmetric = T) \%>\%
+  sliceSeries(dimension = 1) \%>\%
+  anatomy(anatVol, low=700, high=1400) \%>\%
+  overlay(stats, low=2, high=6, symmetric = T) \%>\%
+  sliceSeries(dimension = 3) \%>\%
+  anatomy(anatVol, low=700, high=1400) \%>\%
+  overlay(stats, low=2, high=6, symmetric = T) \%>\%
+  legend("t-statistics", global = TRUE) \%>\%
+  draw(layout = "row")
 }
 }

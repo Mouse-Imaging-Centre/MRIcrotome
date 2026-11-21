@@ -304,6 +304,10 @@ addtitle <- function(ssm, title, side = "right") {
 #'   by the user
 #' @param description The text that will be used to describe the legend. Can be
 #'   NULL, in which case the colour bar is shown without a description.
+#' @param global If TRUE, and the figure is drawn with \code{layout = "row"},
+#'   the legend spans all rows as one shared legend for the whole figure
+#'   instead of sitting beside its own slice series. In column layout a legend
+#'   already spans the full height, so this has no effect there.
 #'
 #' @return The slices series for continuation down the pipe.
 #' @export
@@ -319,12 +323,26 @@ addtitle <- function(ssm, title, side = "right") {
 #'   addtitle("Stats") %>%
 #'   legend("t-statistics") %>%
 #'   draw()
+#'
+#' # one colour bar for three views drawn as rows
+#' sliceSeries(nrow = 1, ncol = 5, begin = 100, end = 350, dimension = 2) %>%
+#'   anatomy(anatVol, low=700, high=1400) %>%
+#'   overlay(stats, low=2, high=6, symmetric = T) %>%
+#'   sliceSeries(dimension = 1) %>%
+#'   anatomy(anatVol, low=700, high=1400) %>%
+#'   overlay(stats, low=2, high=6, symmetric = T) %>%
+#'   sliceSeries(dimension = 3) %>%
+#'   anatomy(anatVol, low=700, high=1400) %>%
+#'   overlay(stats, low=2, high=6, symmetric = T) %>%
+#'   legend("t-statistics", global = TRUE) %>%
+#'   draw(layout = "row")
 #' }
-legend <- function(ssm, description=NULL) {
+legend <- function(ssm, description=NULL, global=FALSE) {
   ss <- getSS(ssm)
   last <- ss$order[[length(ss$order)]]
   ss$legendOrder <- c(ss$legendOrder, last)
   ss[["legendInfo"]][[last]]$description = description
+  ss$legendGlobal <- global
   putSS(ssm, ss)
   return(ssm)
 }
@@ -721,7 +739,9 @@ grobifyByRow <- function(ssm, titlePars = gpar(), legendPars = gpar(), bgCol = N
                                   children=gList(textGrob(ss$title, rot=90, gp = titlePars)))
     }
     if (hasSidePanel(ss)) {
-      gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.row = i, layout.pos.col = legendCol),
+      # a global legend spans every row of the figure
+      rows <- if (isTRUE(ss$legendGlobal)) 1:nseries else i
+      gs[[length(gs)+1]] <- gTree(vp=viewport(layout.pos.row = rows, layout.pos.col = legendCol),
                                   children=gList(assembleSidePanel(ss, gp = legendPars)))
     }
   }
