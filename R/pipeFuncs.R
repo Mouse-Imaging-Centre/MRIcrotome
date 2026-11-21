@@ -168,8 +168,8 @@ sliceSeries <- function(ssm=NULL,
 #'
 #' @examples
 #' v <- exampleVolumes()
-#' whiteMatter <- v$labels == 1
-#' bounds <- maskBounds(whiteMatter, dimension = 2, padding = 2)
+#' darkTissue <- v$labels == 1
+#' bounds <- maskBounds(darkTissue, dimension = 2, padding = 2)
 #' bounds
 #' sliceSeries(nrow = 1, ncol = 4, begin = bounds["begin"], end = bounds["end"]) %>%
 #'   anatomy(v$anatomy, low = 600, high = 1400) %>%
@@ -573,11 +573,11 @@ slice <- function(ssm, volume, low, high, col, underTransparent = FALSE, symmetr
 #'   legend("|t|") %>%
 #'   draw()
 #'
-#' # outline the white matter from a volume of labels
+#' # outline label 1 (dark tissue) of a volume of labels
 #' sliceSeries(nrow = 1, ncol = 4, begin = 10, end = 40) %>%
 #'   anatomy(v$anatomy, low = 600, high = 1400) %>%
 #'   contours(v$labels, labels = 1, col = "magenta") %>%
-#'   legend("white matter") %>%
+#'   legend("dark tissue") %>%
 #'   draw()
 contours <- function(ssm, volume, levels=NULL, col="red", lty=1, lwd=1, name="contours", labels=NULL) {
   if (!is.null(labels) && !is.null(levels)) stop("Cannot specify both 'levels' and 'labels'")
