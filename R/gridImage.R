@@ -26,7 +26,8 @@ sliceImage <- function(volume,
 
   imRange <- getRange(volume, low, high)
   s$slice <- scaleSlice(s$slice, imRange[1] * m, imRange[2] *
-                          m, underTransparent = underTransparent)
+                          m, underTransparent = underTransparent,
+                        reverse = reverse)
   sliceDims <- dim(s$slice)
 
   if (!is.null(alpha)) {
@@ -176,7 +177,8 @@ getRange <- function (volume, low = NULL, high = NULL) {
   c(low, high)
 }
 
-scaleSlice <- function(slice, low=NULL, high=NULL, underTransparent=TRUE) {
+scaleSlice <- function(slice, low=NULL, high=NULL, underTransparent=TRUE,
+                       reverse=FALSE) {
   if (is.character(slice))
     return(slice)
 
@@ -187,8 +189,9 @@ scaleSlice <- function(slice, low=NULL, high=NULL, underTransparent=TRUE) {
     high <- quantile(slice, 0.7)
   }
 
-  # invert if it's a negative scale
-  if (high < low) {
+  # invert if it's a negative scale; the negative half of a symmetric scale
+  # (reverse) is negative also when low == high, where high < low is FALSE
+  if (high < low || (reverse && high == low)) {
     slice <- slice*-1
     high <- high*-1
     low <- low*-1
@@ -213,8 +216,12 @@ scaleSliceToPalette <- function(slice, low, high, palette){
     return(slice)
 
   dims <- dim(slice)
+  # with low == high, scaleSlice() has set every shown value to 0; keep them
+  # (they get the first colour) instead of dividing by zero
+  width <- abs(high - low)
+  if (width == 0) width <- 1
   slice <- #Scale to 0-1
-    slice / abs(high - low)
+    slice / width
 
   maxima <- which(slice == 1)
   slice[maxima] <- slice[maxima] - .Machine$double.eps
