@@ -163,6 +163,9 @@ defaultRCol <- function() {
 getRange <- function (volume, low = NULL, high = NULL) {
   if (is.character(volume)) return(c(NA, NA))
   if (is.null(low) || is.null(high)) {
+    if (all(is.na(volume)))
+      stop("Cannot choose a colour range: the volume has only NA values. ",
+           "Give 'low' and 'high'.")
     q <- quantile(volume, c(0.02, 0.98), na.rm = TRUE, names = FALSE)
     # sparse volumes (e.g. a few labels on a zero background) collapse the
     # robust range to a single value; use the full range instead
