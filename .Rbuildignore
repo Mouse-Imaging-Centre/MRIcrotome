@@ -2,3 +2,4 @@
 ^\.Rproj\.user$
 ^\.github$
 ^vignettes/figures\.html$
+^data-raw$

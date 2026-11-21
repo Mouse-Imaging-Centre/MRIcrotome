@@ -3,7 +3,7 @@ Type: Package
 Title: Visualization Tools for 3D Volumes
 Version: 0.2.0
 Authors@R: person("Jason", "Lerch", email = "jason.lerch@sickkids.ca",
-                  role = c("aut", "cre"))
+                  role = c("aut", "cre", "cph"))
 Description: Builds publication-ready figures from 3D volumes such as MRI
     scans. A figure is described as a pipeline: a series of slices through a
     volume, an anatomical background, statistical or label overlays, contours,
@@ -14,6 +14,7 @@ License: BSD_3_clause + file LICENSE
 URL: https://github.com/Mouse-Imaging-Centre/MRIcrotome
 BugReports: https://github.com/Mouse-Imaging-Centre/MRIcrotome/issues
 Encoding: UTF-8
+Depends: R (>= 2.10)
 Imports: purrr,
          grid,
          grDevices,
