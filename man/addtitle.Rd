@@ -4,13 +4,17 @@
 \alias{addtitle}
 \title{Add a title to a slice series}
 \usage{
-addtitle(ssm, title)
+addtitle(ssm, title, side = "right")
 }
 \arguments{
 \item{ssm}{The slice series info, usually passed along the pipe and specified
 by the user}
 
 \item{title}{The text that will be used for the title.}
+
+\item{side}{Which side of the slices to put the title on in row layout
+(\code{draw(layout = "row")}): \code{"right"} (default) or \code{"left"}.
+Ignored in column layout, where titles go above the slices.}
 }
 \value{
 The slices series for continuation down the pipe.
