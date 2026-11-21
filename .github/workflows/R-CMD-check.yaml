@@ -46,6 +46,13 @@ jobs:
       # --no-manual nor build_args.
       - uses: r-lib/actions/setup-tinytex@v2
 
+      # The PDF manual sets code and URLs in a fixed-width font: inconsolata,
+      # or courier when it is missing. TinyTeX on some runners (R-devel,
+      # Windows) has neither, and the manual fails with "Font T1/pcr/m/n/10
+      # = pcrr8t not loadable".
+      - name: Install LaTeX fonts for the manual
+        run: tlmgr install courier inconsolata
+
       - uses: r-lib/actions/setup-r@v2
         with:
           r-version: ${{ matrix.config.r }}
