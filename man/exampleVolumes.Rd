@@ -15,17 +15,21 @@ Returns three volumes in the same 50 x 50 x 50 voxel space, so that the
 examples and the vignette run without MINC files or RMINC.
 }
 \details{
-\code{anatomy} is real data: a cut-out around the cerebellum of an
-ex-vivo mouse brain MRI with 0.056 mm voxels, from the RMINC test data
-(\url{https://github.com/Mouse-Imaging-Centre/RMINC-test-data},
-\code{brain_cut_out.mnc}, BSD-3-Clause). Its values go from about 190 to
-2420; white matter is dark (about 600 to 1030) and grey matter is light.
+\code{anatomy} is real data: a cut-out of a mouse brain MRI with
+0.056 mm voxels (the region looks like the cerebellum). It is
+\code{brain_cut_out.mnc} from the RMINC test data
+(\url{https://github.com/Mouse-Imaging-Centre/RMINC-test-data}),
+copyright Mouse Imaging Centre, Hospital for Sick Children, under the
+BSD-3-Clause licence; see the file \code{COPYRIGHTS} of the installed
+package. Its values go from about 190 to 2420. Dark tissue is about 600
+to 1030 and light tissue is above that.
 
 \code{stats} is made up: a smooth map that looks like t-statistics, with
 one positive and one negative peak (about +6 and -5) on a low background.
 
-\code{labels} divides \code{anatomy} by intensity: 0 outside the tissue,
-1 white matter and 2 grey matter.
+\code{labels} divides \code{anatomy} by intensity only: 0 outside the
+tissue, 1 for dark tissue and 2 for light tissue. In this image, these are
+mostly white matter and grey matter, but they are not a segmentation.
 
 The volumes are the same each time; the function does not use the random
 number generator.
