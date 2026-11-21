@@ -23,8 +23,8 @@ specified dimension, with optional padding. Useful for setting the
 }
 \examples{
 v <- exampleVolumes()
-whiteMatter <- v$labels == 1
-bounds <- maskBounds(whiteMatter, dimension = 2, padding = 2)
+darkTissue <- v$labels == 1
+bounds <- maskBounds(darkTissue, dimension = 2, padding = 2)
 bounds
 sliceSeries(nrow = 1, ncol = 4, begin = bounds["begin"], end = bounds["end"]) \%>\%
   anatomy(v$anatomy, low = 600, high = 1400) \%>\%
