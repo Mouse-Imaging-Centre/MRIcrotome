@@ -39,7 +39,9 @@ validateVolume <- function(volume) {
 #' @param end Last slice. Can be NULL if slices explicitly specified.
 #' @param rotate Rotate each slice counterclockwise by 0 (the default), 90,
 #'   180 or 270 degrees. For 90 and 270 the slices change from wide to tall,
-#'   and the layout of the series follows.
+#'   and the layout of the series follows. With
+#'   \code{options(RMINC_flip_image = FALSE)} the image is drawn upside down,
+#'   so the same value turns it clockwise.
 #' @param flip Mirror each slice after the rotation: \code{"none"} (the
 #'   default), \code{"horizontal"} (left and right change places) or
 #'   \code{"vertical"} (top and bottom change places).
@@ -125,7 +127,6 @@ sliceSeries <- function(ssm=NULL,
     ssm <- cloneSSM(ssm)
     ssm$seriesCounter = ssm$seriesCounter+1
   }
-  # add checking for slices vs nrow and ncol
 
   if (is.null(nrow)) nrow <- ssm$ssl[[ssm$seriesCounter-1]]$nrow
   if (is.null(ncol)) ncol <- ssm$ssl[[ssm$seriesCounter-1]]$ncol
@@ -141,7 +142,7 @@ sliceSeries <- function(ssm=NULL,
             end=if (is.null(end) && ssm$seriesCounter>1) ssm$ssl[[ssm$seriesCounter-1]]$end else end,
             rotate=if (is.null(rotate)) prev$rotate %||% 0 else rotate,
             flip=if (is.null(flip)) prev$flip %||% "none" else flip,
-            seriesVP=NULL, #seriesVP,
+            seriesVP=NULL,
             order=list(),
             legendInfo=list(),
             legendOrder=list(),
@@ -440,8 +441,10 @@ addtitle <- function(ssm, title, side = "right") {
 #'   instead of sitting beside its own slice series. In column layout a legend
 #'   already spans the full height, so this has no effect there.
 #' @param digits The smallest number of significant digits in the numbers of a
-#'   colour bar. The numbers are rounded to this, but the whole-number part is
-#'   never rounded (so 1400 stays 1400). Defaults to 3.
+#'   colour bar, from 1 to 22. Defaults to 3. The numbers are formatted
+#'   together with \code{format()}, so the whole-number part of a number
+#'   such as 1400 is kept; but when the numbers differ very much in size (for
+#'   example 0.0012 and 1234), R can use scientific notation.
 #'
 #' @return The slices series for continuation down the pipe.
 #' @export
@@ -471,6 +474,9 @@ addtitle <- function(ssm, title, side = "right") {
 #'   legend("t-statistics", global = TRUE) %>%
 #'   draw(layout = "row")
 legend <- function(ssm, description=NULL, global=FALSE, digits=3) {
+  if (!is.numeric(digits) || length(digits) != 1 || is.na(digits) ||
+      digits != round(digits) || digits < 1 || digits > 22)
+    stop("'digits' must be one whole number from 1 to 22")
   ss <- getSS(ssm)
   if (length(ss$order) == 0)
     stop("legend() must come after a layer (anatomy(), overlay() or contours()) ",
