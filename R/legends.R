@@ -10,10 +10,19 @@ legendWidth <- function(ss, gp = gpar()) {
   w <- unit(4, "lines")
   for (n in ss$legendOrder) {
     li <- ss$legendInfo[[n]]
-    strings <- if (li$type == "slice") legendStrings(li$low, li$high, li$symmetric) else format(li$levels)
+    strings <- if (li$type == "slice") legendStrings(li$low, li$high, li$symmetric) else format(contourLegendLevels(li))
     w <- max(w, grobWidth(textGrob(strings, gp = gp)) + unit(2 + !is.null(li$description), "lines"))
   }
   w
+}
+
+# what the legend shows for each contour level: the levels, or for a contour
+# of labels the label values (its internal level, 0.5, means nothing to a
+# reader); a long list of labels is shortened
+contourLegendLevels <- function(li) {
+  if (is.null(li$labels)) return(li$levels)
+  shown <- li$labels[seq_len(min(3, length(li$labels)))]
+  paste0(paste(shown, collapse = ", "), if (length(li$labels) > 3) ", ...")
 }
 
 contourLegendGrob <- function(levels,

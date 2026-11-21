@@ -549,7 +549,8 @@ contours <- function(ssm, volume, levels=NULL, col="red", lty=1, lwd=1, name="co
   ss[[name]] <- sliceList
   #ss[["legendInfo"]][[name]] <- list(low=low, high=high, col=col, rCol=rCol, symmetric=symmetric)
   ss[["order"]][[length(ss$order)+1]] <- name
-  ss[["legendInfo"]][[name]] <- list(type="contour", levels=levels, col=col, lty=lty, lwd=lwd)
+  ss[["legendInfo"]][[name]] <- list(type="contour", levels=levels, col=col, lty=lty, lwd=lwd,
+                                     labels=labels)
   ssm <- putSS(ssm, ss)
   return(ssm)
 }
@@ -730,7 +731,7 @@ assembleLegends <- function(ss, gp = gpar()) {
                                   colWidth = unit(1, "lines"),
                                   description = li$description, gp = gp))
     else if (li$type == "contour")
-      gl <- gList(contourLegendGrob(levels=li$levels, col=li$col, lty=li$lty, lwd=li$lwd,
+      gl <- gList(contourLegendGrob(levels=contourLegendLevels(li), col=li$col, lty=li$lty, lwd=li$lwd,
                                     description=li$description, gp = gp))
 
     legendGrobs[[i]] <- gTree(vp=viewport(layout.pos.row = (i*2)-1, x=1),
